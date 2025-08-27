@@ -24,6 +24,8 @@ pubspec.lock
 /.gradle/
 /android/.gradle/
 *.iml
+android/app/.cxx/
+
 
 # iOS related (if applicable)
 ios/Flutter/Flutter.framework
