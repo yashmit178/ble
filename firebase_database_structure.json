@@ -1,0 +1,93 @@
+{
+  "users": {
+    "username1": {
+      "password": "abcd",
+      "professorId": "prof_001",
+      "name": "Dr. John Smith",
+      "department": "Computer Science",
+      "email": "john.smith@university.edu"
+    },
+    "username2": {
+      "password": "1234",
+      "professorId": "prof_002",
+      "name": "Prof. Sarah Johnson",
+      "department": "Mathematics",
+      "email": "sarah.johnson@university.edu"
+    },
+    "admin": {
+      "password": "admin",
+      "professorId": "prof_admin",
+      "name": "System Administrator",
+      "department": "IT Services",
+      "email": "admin@university.edu"
+    }
+  },
+  "lessons": {
+    "lesson_001": {
+      "professorId": "prof_001",
+      "classroomId": "classroom_a",
+      "subjectName": "Data Structures & Algorithms",
+      "startTime": "2024-12-18T07:00:00.000Z",
+      "endTime": "2024-12-18T23:30:00.000Z",
+      "isActive": true
+    },
+    "lesson_002": {
+      "professorId": "prof_002",
+      "classroomId": "classroom_b",
+      "subjectName": "Linear Algebra",
+      "startTime": "2024-12-18T07:00:00.000Z",
+      "endTime": "2024-12-18T23:30:00.000Z",
+      "isActive": true
+    },
+    "lesson_003": {
+      "professorId": "prof_001",
+      "classroomId": "classroom_a",
+      "subjectName": "Database Systems",
+      "startTime": "2024-12-18T14:00:00.000Z",
+      "endTime": "2024-12-18T23:30:00.000Z",
+      "isActive": true
+    }
+  },
+  "classrooms": {
+    "classroom_a": {
+      "name": "Room A-101",
+      "building": "Computer Science Building",
+      "capacity": 50,
+      "hasProjector": true,
+      "hasAC": true,
+      "hasWhiteboard": true,
+      "espMacAddress": "24:6F:28:AA:BB:CC",
+      "isActive": true
+    },
+    "classroom_b": {
+      "name": "Room B-205",
+      "building": "Mathematics Building",
+      "capacity": 40,
+      "hasProjector": true,
+      "hasAC": false,
+      "hasWhiteboard": true,
+      "espMacAddress": "24:6F:28:DD:EE:FF",
+      "isActive": true
+    },
+    "classroom_c": {
+      "name": "Room C-301",
+      "building": "Physics Building",
+      "capacity": 35,
+      "hasProjector": false,
+      "hasAC": true,
+      "hasWhiteboard": false,
+      "espMacAddress": "30:AE:A4:11:22:33",
+      "isActive": true
+    }
+  },
+  "access_logs": {
+    "log_001": {
+      "professorId": "prof_001",
+      "classroomId": "classroom_a",
+      "action": "setup",
+      "timestamp": "2024-12-18T08:58:30.000Z",
+      "lessonId": "lesson_001",
+      "duration": 90
+    }
+  }
+}
