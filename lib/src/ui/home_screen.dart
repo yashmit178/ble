@@ -12,6 +12,7 @@ import 'package:ble/src/ui/widgets/custom_device_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -28,10 +29,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    BlocProvider.of<BleBloc>(context).add(CheckBleAvailability());
+    super.initState();
+    _requestPermissionsAndStartBle(); // Call the new method
     _loadProfessorProfile();
     _loadClassroomMapping();
-    super.initState();
+  }
+
+  Future<void> _requestPermissionsAndStartBle() async {
+    // Request multiple permissions at once.
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+    ].request();
+
+    // Check if all permissions were granted
+    if (statuses[Permission.location]!.isGranted &&
+        statuses[Permission.bluetoothScan]!.isGranted &&
+        statuses[Permission.bluetoothConnect]!.isGranted) {
+      // If permissions are granted, proceed with Bluetooth logic
+      if (mounted) {
+        BlocProvider.of<BleBloc>(context).add(CheckBleAvailability());
+      }
+    } else {
+      // Handle the case where the user denies the permissions
+      EasyLoading.showError(
+          'Location and Bluetooth permissions are required to find classroom devices.',
+          duration: const Duration(seconds: 3));
+    }
   }
 
   Future<void> _loadProfessorProfile() async {

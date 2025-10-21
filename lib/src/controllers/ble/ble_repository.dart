@@ -23,24 +23,25 @@ class BleRepository {
 
   Stream<AbstractDevice> startDiscovering() async* {
     discoveredDevices.clear();
-    // get known device uuids
     final knownDevices = await _serviceRepository.getKnownDeviceUuid();
     if (!knownDevices.status) return;
 
-    FlutterBluePlus.startScan();
-    Stream<List<ScanResult>> scanResults = FlutterBluePlus.scanResults;
-    // Listen to scan results
-    await for (List<ScanResult> results in scanResults) {
-      for (var r in results) {
-        if (discoveredDevices.contains(r.device) ||
-            await r.device.connectionState.first == BluetoothConnectionState.connected) {
-          continue;
-        }
-        discoveredDevices.add(r.device);
-        if (knownDevices.data.contains(r.device.remoteId.str)) {
-          // Determine device type and create appropriate device
-          final deviceType = await _determineDeviceType(r.device);
-          yield _createAbstractDevice(r.device, deviceType);
+    // Scan specifically for the ESP32 Classroom Service UUID
+    final serviceGuid = Guid(ESP32ClassroomProfile.mainService);
+    FlutterBluePlus.startScan(
+      withServices: [serviceGuid], // This is the key change!
+      timeout: const Duration(seconds: 15),
+    );
+
+    // Listen to the stream of results
+    await for (var results in FlutterBluePlus.scanResults) {
+      for (ScanResult r in results) {
+        if (!discoveredDevices.contains(r.device) &&
+            knownDevices.data.contains(r.device.remoteId.str)) {
+          print('Found known Classroom ESP32: ${r.device.remoteId.str}');
+          discoveredDevices.add(r.device);
+          // Since we scanned by service UUID, we know it's a classroom device.
+          yield _createAbstractDevice(r.device, DeviceType.esp32Classroom);
         }
       }
     }

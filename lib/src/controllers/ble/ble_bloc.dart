@@ -10,6 +10,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BleBloc extends Bloc<BleEvent, BleState> {
   final BleRepository _bleRepository;
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
+  StreamSubscription? _scanSubscription;
   final Map<int, DateTime?> proximityTimer = {};
 
   BleBloc(this._bleRepository) : super(BleState()) {
@@ -21,24 +23,49 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     on<UpdateDevice>(_updateDevice);
     on<InitBle>(_initBle);
     rssiListener();
+
+    // Listen for Bluetooth adapter state changes
+    _adapterStateSubscription = FlutterBluePlus.adapterState.listen((state) {
+      if (state == BluetoothAdapterState.on) {
+        add(CheckBleAvailability()); // If user turns BT on, re-start the process
+      } else {
+        emit(this.state.copyWith(status: BleStatus.notAvailable));
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _adapterStateSubscription?.cancel();
+    _scanSubscription?.cancel();
+    _bleRepository.stopDiscovering();
+    return super.close();
   }
 
   FutureOr<void> _checkBleAvailability(
       CheckBleAvailability event, Emitter<BleState> emit) async {
     emit(state.copyWith(status: BleStatus.checkingAvailability));
-    final res = await _bleRepository.checkBleAvailability();
-    if (res) {
-      final device = await _bleRepository.checkConnectedDevices();
-      emit(state.copyWith(
-          status: BleStatus.available, connectedDevices: device));
-    } else {
+    final adapterState = await FlutterBluePlus.adapterState.first;
+    if (adapterState != BluetoothAdapterState.on) {
       emit(state.copyWith(status: BleStatus.notAvailable));
+      // Prompt the user to turn on Bluetooth
+      try {
+        await FlutterBluePlus.turnOn();
+      } catch (e) {
+        print("Error requesting to turn on Bluetooth: $e");
+      }
+    } else {
+      final devices = await _bleRepository.checkConnectedDevices();
+      emit(state.copyWith(
+          status: BleStatus.available, connectedDevices: devices));
     }
   }
 
   FutureOr<void> _discoverDevices(
       DiscoverDevices event, Emitter<BleState> emit) async {
-    _bleRepository.startDiscovering().listen(_onDeviceDiscovered);
+    emit(state.copyWith(status: BleStatus.discovering));
+    _scanSubscription?.cancel(); // Ensure any old scan is stopped
+    _scanSubscription = _bleRepository.startDiscovering().listen(_onDeviceDiscovered);
   }
 
   void _onDeviceDiscovered(AbstractDevice device) {
