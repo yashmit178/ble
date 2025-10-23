@@ -22,29 +22,59 @@ class BleRepository {
   }
 
   Stream<AbstractDevice> startDiscovering() async* {
+    // Ensure scanning is stopped before starting a new one
+    await FlutterBluePlus.stopScan();
+    print("Previous scan stopped."); // Add logging
+
     discoveredDevices.clear();
     final knownDevices = await _serviceRepository.getKnownDeviceUuid();
-    if (!knownDevices.status) return;
+    if (!knownDevices.status) {
+      print("Failed to get known device UUIDs."); // Add logging
+      return;
+    }
 
-    // Scan specifically for the ESP32 Classroom Service UUID
     final serviceGuid = Guid(ESP32ClassroomProfile.mainService);
-    FlutterBluePlus.startScan(
-      withServices: [serviceGuid], // This is the key change!
-      timeout: const Duration(seconds: 15),
-    );
+    print(
+        "Starting scan for service: ${serviceGuid.toString()}"); // Add logging
+    print("Looking for known MACs: ${knownDevices.data}"); // Add logging
 
-    // Listen to the stream of results
-    await for (var results in FlutterBluePlus.scanResults) {
-      for (ScanResult r in results) {
-        if (!discoveredDevices.contains(r.device) &&
-            knownDevices.data.contains(r.device.remoteId.str)) {
-          print('Found known Classroom ESP32: ${r.device.remoteId.str}');
-          discoveredDevices.add(r.device);
-          // Since we scanned by service UUID, we know it's a classroom device.
-          yield _createAbstractDevice(r.device, DeviceType.esp32Classroom);
+    try {
+      FlutterBluePlus.startScan(
+        withServices: [serviceGuid],
+        timeout: const Duration(seconds: 20), // Increased timeout
+      );
+
+      // Use distinct to avoid processing the same device multiple times rapidly
+      await for (var results in FlutterBluePlus.scanResults) {
+        print("Scan results received: ${results.length} devices found");
+
+        for (ScanResult r in results) {
+          print(
+              "Found device: ${r.device.platformName} (${r.device.remoteId.str}) RSSI: ${r.rssi}");
+
+          // Check if already discovered OR if already connected by the system
+          final isConnected = await r.device.connectionState.first ==
+              BluetoothConnectionState.connected;
+          if (!discoveredDevices.contains(r.device) &&
+              knownDevices.data.contains(r.device.remoteId.str) &&
+              !isConnected) {
+            // Add check for already connected
+            print(
+                'Found known Classroom ESP32: ${r.device.remoteId.str}, RSSI: ${r.rssi}');
+            discoveredDevices.add(r.device);
+            yield _createAbstractDevice(r.device, DeviceType.esp32Classroom);
+            // Stop after finding first matching device
+            await FlutterBluePlus.stopScan();
+            return;
+          }
         }
       }
+    } catch (e) {
+      print("Error during BLE scan: $e");
+      await FlutterBluePlus.stopScan();
     }
+
+    print("Scan completed - no matching devices found");
   }
 
   Future<DeviceType> _determineDeviceType(BluetoothDevice bleDevice) async {
@@ -122,9 +152,16 @@ class BleRepository {
   }
 
   Future<void> connect(AbstractDevice device, Function listener) async {
-    await device.connect();
+    print("Repository: Connecting to ${device.name} (${device.uuid})"); // Add logging
+    // Listen to state changes *before* connecting
     device.setDeviceStateListener(listener);
+
+    await device.connect(); // Let the AbstractDevice handle its own timeout if needed
+    print(
+        "Repository: Connection initiated, loading services for ${device.name}"); // Add logging
     await device.loadServicesAndCharacteristics();
+    print(
+        "Repository: Services loaded for ${device.name}"); // Add logging
   }
 
   Future<void> disconnect(AbstractDevice device) async {

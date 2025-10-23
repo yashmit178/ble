@@ -1,5 +1,6 @@
 class ESP32ClassroomProfile {
   // Standard ESP32 BLE Service UUID (commonly used)
+  // CRITICAL FIX: Match the ESP32's actual service UUID
   static String mainService = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
   static String controlChar = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 

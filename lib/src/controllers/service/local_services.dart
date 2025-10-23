@@ -9,12 +9,13 @@ class LocalServices extends ServiceRepository {
       () => CustomResponse(
         status: true,
         data: [
+          "24:6F:28:7C:94:FE", // FIXED: Correct ESP32 MAC address
           // Original Smart Switch devices
-          "80:F5:B5:69:B8:64",
-          "C4:19:D1:06:C8:B9",
+          //"80:F5:B5:69:B8:64",
+          //"C4:19:D1:06:C8:B9",
           // ESP32 Classroom devices - REPLACE WITH YOUR REAL MAC ADDRESSES
           // Example: "24:6F:28:12:34:56", // Your ESP32 Classroom A
-          "24:6F:28:7C:94:FC",
+
           // PLACEHOLDER - Replace with your real ESP32 MAC
           //"24:6F:28:DD:EE:FF",
           // PLACEHOLDER - Replace if you have multiple ESP32s
@@ -93,7 +94,7 @@ class LocalServices extends ServiceRepository {
         data: {
           // ESP32 MAC Address -> Classroom ID mapping
           // TODO: Replace with your real ESP32 MAC addresses
-          "24:6F:28:7C:94:FC": "classroom_a",
+          "24:6F:28:7C:94:FE": "classroom_a",
           // PLACEHOLDER - Replace with real MAC
           //"24:6F:28:DD:EE:FF": "classroom_b",
           // PLACEHOLDER - Replace with real MAC
@@ -124,7 +125,7 @@ class LocalServices extends ServiceRepository {
             "hasProjector": true,
             "hasAC": true,
             "hasWhiteboard": true,
-            "espMacAddress": "24:6F:28:7C:94:FC",
+            "espMacAddress": "24:6F:28:7C:94:FE",
             "isActive": true
           }
           /*,"classroom_b": {

@@ -40,8 +40,18 @@ class ESP32Classroom extends AbstractDevice {
 
   @override
   Future<void> connect() async {
-    await bleDevice?.connect();
-    await Future.delayed(Duration.zero);
+    if (bleDevice == null) return;
+    print("ESP32Classroom: Attempting connection to ${bleDevice!.remoteId.str}"); // Add logging
+    try {
+      await bleDevice!.connect(timeout: Duration(seconds: 15)); // Add timeout here
+      print(
+          "ESP32Classroom: Connection successful to ${bleDevice!.remoteId.str}"); // Add logging
+    } catch (e) {
+      print(
+          "ESP32Classroom: Connection failed to ${bleDevice!.remoteId.str}: $e"); // Add logging
+      throw e; // Re-throw the exception so the BLoC can catch it
+    }
+    // No need for Future.delayed here
   }
 
   @override
