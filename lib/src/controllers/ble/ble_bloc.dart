@@ -207,8 +207,14 @@ class BleBloc extends Bloc<BleEvent, BleState> {
         ),
       );
       // Important: If connection fails, restart discovery after a short delay
-      await Future.delayed(const Duration(seconds: 2));
+      /*await Future.delayed(const Duration(seconds: 2));
       if (state.status != BleStatus.discovering && state.status != BleStatus.connected) {
+        add(DiscoverDevices());
+      }*/
+      print("Connection failed. Cooling down for 5 seconds before retry...");
+      await Future.delayed(const Duration(seconds: 5));
+      if (state.status != BleStatus.discovering && state.status != BleStatus.connected) {
+        print("Cooldown complete. Restarting discovery.");
         add(DiscoverDevices());
       }
     }

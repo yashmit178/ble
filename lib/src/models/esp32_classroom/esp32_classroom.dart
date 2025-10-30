@@ -43,7 +43,8 @@ class ESP32Classroom extends AbstractDevice {
     if (bleDevice == null) return;
     print("ESP32Classroom: Attempting connection to ${bleDevice!.remoteId.str}"); // Add logging
     try {
-      await bleDevice!.connect(timeout: Duration(seconds: 15)); // Add timeout here
+      await bleDevice!.connect(timeout: Duration(seconds: 15), mtu: null,);
+      // Add timeout here
       print(
           "ESP32Classroom: Connection successful to ${bleDevice!.remoteId.str}"); // Add logging
     } catch (e) {
@@ -62,8 +63,8 @@ class ESP32Classroom extends AbstractDevice {
 
   @override
   Future<void> loadServicesAndCharacteristics() async {
+    await Future.delayed(const Duration(seconds: 1));
     List<BluetoothService> tmpServices = await bleDevice!.discoverServices();
-    await Future.delayed(Duration.zero);
 
     for (BluetoothService service in tmpServices) {
       deviceServices[service.uuid.toString()] = service;

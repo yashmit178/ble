@@ -35,12 +35,12 @@ class BleRepository {
 
     final serviceGuid = Guid(ESP32ClassroomProfile.mainService);
     print(
-        "Starting scan for service: ${serviceGuid.toString()}"); // Add logging
-    print("Looking for known MACs: ${knownDevices.data}"); // Add logging
+        "Starting scan. Will filter for known MACs: ${knownDevices.data}"); // Updated log
+    print("Target Service UUID (for reference): ${serviceGuid.toString()}");
 
     try {
       FlutterBluePlus.startScan(
-        withServices: [serviceGuid],
+        //withServices: [serviceGuid],
         timeout: const Duration(seconds: 20), // Increased timeout
       );
 

@@ -39,6 +39,7 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 unsigned long autoLockTimer = 0;
 bool autoLockEnabled = false;
+unsigned long lastLoopTime = 0;
 
 // IR remote for projector control
 IRsend irsend(PROJECTOR_IR_PIN);
@@ -88,25 +89,39 @@ class MyServerCallbacks : public BLEServerCallbacks {
 // BLE Characteristic Callbacks
 class MyCallbacks : public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-        // Fix: Get the value properly for ESP32 BLE library
-        String rxValue = pCharacteristic->getValue().c_str();
+        // Read the value as an Arduino String object (which your library returns)
+        String rxValue = pCharacteristic->getValue();
 
-        if (rxValue.length() == COMMAND_LENGTH) {
-            uint8_t command[COMMAND_LENGTH];
-            for (int i = 0; i < COMMAND_LENGTH; i++) {
-                command[i] = rxValue[i];
+        // Get the length from the Arduino String
+        size_t len = rxValue.length();
+
+        if (len > 0) {
+            Serial.print("Received ");
+            Serial.print((int)len);  // Cast size_t for Serial.print
+            Serial.println(" bytes.");
+
+            if (len == COMMAND_LENGTH) {
+                // Create a buffer for the command
+                uint8_t command[COMMAND_LENGTH];
+
+                // Use the .getBytes() method to safely copy the raw bytes
+                // from the Arduino String into our command buffer
+                rxValue.getBytes(command, COMMAND_LENGTH);
+
+                Serial.print("Command bytes: ");
+                for (int i = 0; i < COMMAND_LENGTH; i++) {
+                    Serial.printf("%02X ", command[i]);
+                }
+                Serial.println();
+
+                // This is now safe to call
+                handleClassroomCommand(command);
+
+            } else {
+                Serial.printf("Invalid command length: %d (expected %d)\n", (int)len, COMMAND_LENGTH);
             }
-
-            Serial.print("Received command: ");
-            for (int i = 0; i < COMMAND_LENGTH; i++) {
-                Serial.printf("%02X ", command[i]);
-            }
-            Serial.println();
-
-            handleClassroomCommand(command);
         } else {
-            Serial.printf("Invalid command length: %d (expected %d)\n", rxValue.length(),
-                          COMMAND_LENGTH);
+            Serial.println("Received empty write.");
         }
     }
 };
@@ -152,8 +167,8 @@ void setupBLE() {
     pCharacteristic = pService->createCharacteristic(
             CHARACTERISTIC_UUID,
             BLECharacteristic::PROPERTY_READ |
-                    BLECharacteristic::PROPERTY_WRITE |
-                    BLECharacteristic::PROPERTY_NOTIFY
+            BLECharacteristic::PROPERTY_WRITE |
+            BLECharacteristic::PROPERTY_NOTIFY
     );
 
     pCharacteristic->setCallbacks(new MyCallbacks());
@@ -189,7 +204,7 @@ void handleClassroomCommand(uint8_t *command) {
     uint8_t expectedChecksum = command[0] ^ command[1] ^ command[2];
     if (command[3] != expectedChecksum) {
         Serial.println("Invalid checksum");
-        sendResponse(0x00); // Error response  
+        sendResponse(0x00); // Error response
         return;
     }
 
@@ -366,8 +381,8 @@ void sendResponse(uint8_t status) {
 void loop() {
     // Handle BLE connection state changes
     if (!deviceConnected && oldDeviceConnected) {
-        delay(500); // Give the bluetooth stack the chance to get things ready
-        pServer->startAdvertising(); // Restart advertising
+        delay(500);                   // This short delay *on disconnect* is fine
+        pServer->startAdvertising();  // Restart advertising
         Serial.println("Start advertising");
         oldDeviceConnected = deviceConnected;
     }
@@ -376,12 +391,18 @@ void loop() {
         oldDeviceConnected = deviceConnected;
     }
 
-    // Handle auto-lock timer
-    if (autoLockEnabled && millis() > autoLockTimer) {
-        Serial.println("⏰ Auto-lock timer expired - locking classroom");
-        performClassroomShutdown();
+    // Non-blocking loop timer (runs roughly every 100ms)
+    if (millis() - lastLoopTime > 100) {
+        lastLoopTime = millis();  // Update the last run time
+
+        // Handle auto-lock timer
+        if (autoLockEnabled && millis() > autoLockTimer) {
+            Serial.println("⏰ Auto-lock timer expired - locking classroom");
+            performClassroomShutdown();
+        }
+
+        // Optional: Add sensor readings, status updates, etc. here
     }
 
-    // Optional: Add sensor readings, status updates, etc.
-    delay(100);
+    // NO delay() AT THE END
 }
