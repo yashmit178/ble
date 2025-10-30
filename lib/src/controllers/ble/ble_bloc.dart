@@ -23,14 +23,13 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     on<StopDiscovering>(_stopDiscovering);
     on<UpdateDevice>(_updateDevice);
     on<InitBle>(_initBle);
-    rssiListener();
+    //rssiListener();
 
     // Listen for Bluetooth adapter state changes
     _adapterStateSubscription = FlutterBluePlus.adapterState.listen((state) {
-      if (state == BluetoothAdapterState.on) {
-        add(CheckBleAvailability()); // If user turns BT on, re-start the process
-      } else {
-        emit(this.state.copyWith(status: BleStatus.notAvailable));
+      if (state != BluetoothAdapterState.on) {
+        // If user turns BT OFF, clear everything and set state to notAvailable
+        add(InitBle()); // Use InitBle to reset the state
       }
     });
   }
@@ -47,33 +46,42 @@ class BleBloc extends Bloc<BleEvent, BleState> {
       CheckBleAvailability event, Emitter<BleState> emit) async {
     emit(state.copyWith(status: BleStatus.checkingAvailability));
 
-    // CRITICAL: Request permissions FIRST before checking Bluetooth
-    bool permissionsGranted = await _requestBlePermissions();
-    if (!permissionsGranted) {
-      emit(state.copyWith(
-          status: BleStatus.notAvailable,
-          message:
-              "Bluetooth and Location permissions are required. Please enable Location Services in Settings."));
-      return;
-    }
-
+    // 1. Check if Bluetooth Adapter is ON
     final adapterState = await FlutterBluePlus.adapterState.first;
+
     if (adapterState != BluetoothAdapterState.on) {
       emit(state.copyWith(
           status: BleStatus.notAvailable, message: "Please turn on Bluetooth"));
-      // Prompt the user to turn on Bluetooth
       try {
         await FlutterBluePlus.turnOn();
       } catch (e) {
         print("Error requesting to turn on Bluetooth: $e");
+        emit(state.copyWith(
+            status: BleStatus.notAvailable, message: "Bluetooth could not be enabled."));
       }
-    } else {
-      final devices = await _bleRepository.checkConnectedDevices();
-      emit(state.copyWith(
-          status: BleStatus.available,
-          connectedDevices: devices,
-          message: "Bluetooth ready - searching for classroom devices..."));
+      return; // Exit here if BT is off
     }
+
+    // 2. If Bluetooth is ON, THEN check/request permissions
+    print("Bluetooth is ON. Checking permissions...");
+    bool permissionsGranted = await _requestBlePermissions();
+    if (!permissionsGranted) {
+      print("Permissions were NOT granted.");
+      emit(state.copyWith(
+          status: BleStatus.notAvailable,
+          message:
+          "Required permissions denied. Please grant Location and Nearby Devices permissions in app settings."));
+      return; // Exit here if permissions are denied
+    }
+
+    // 3. If Bluetooth is ON and Permissions are GRANTED: Proceed
+    print("Permissions granted. Checking for connected devices...");
+    final devices = await _bleRepository.checkConnectedDevices();
+    emit(state.copyWith(
+        status: BleStatus.available,
+        connectedDevices: devices,
+        message: "Bluetooth ready - searching..."));
+    add(DiscoverDevices());
   }
 
   Future<bool> _requestBlePermissions() async {
@@ -228,29 +236,25 @@ class BleBloc extends Bloc<BleEvent, BleState> {
 
   FutureOr<void> _deviceStatusChanged(
       DeviceStatusChanged event, Emitter<BleState> emit) async {
-    print(
-        "Device disconnected: ${event.device.name}"); // Add logging
-    // Disconnect explicitly if not already disconnected by the system event
-    try {
-      await _bleRepository.disconnect(event.device);
-    } catch (e) {
-      print("Error during explicit disconnect: $e"); // Ignore errors here
-    }
+    print("Device disconnected: ${event.device.name}");
 
     final updatedDevices = List.of(state.connectedDevices)
       ..removeWhere((d) => d.uuid == event.device.uuid);
 
     emit(state.copyWith(
       connectedDevices: updatedDevices,
-      // If no devices are left, go back to 'available' to allow rediscovery
+      // If no devices are left, go back to 'available'
       status: updatedDevices.isEmpty ? BleStatus.available : state.status,
       message: "${event.device.name} disconnected",
     ));
 
-    // If no devices are connected, restart discovery automatically
+    // If no devices are connected, the BLoC will now simply wait.
+    // A new scan will ONLY be triggered if the user explicitly asks
+    // OR if a connection attempt *fails* (handled in _connectDevice).
+    // This stops the "scanning too frequently" loop.
     if (updatedDevices.isEmpty) {
-      print("No devices connected, restarting discovery."); // Add logging
-      add(DiscoverDevices());
+      print("No devices connected. Awaiting user action or new connection attempt.");
+      // We REMOVE the automatic add(DiscoverDevices()) from here.
     }
   }
 
@@ -294,7 +298,7 @@ class BleBloc extends Bloc<BleEvent, BleState> {
     add(CheckBleAvailability());
   }
 
-  Future<void> rssiListener() async {
+  /*Future<void> rssiListener() async {
     Future.delayed(
       const Duration(seconds: 1), // delay of 1 second
           () async {
@@ -349,12 +353,12 @@ class BleBloc extends Bloc<BleEvent, BleState> {
         rssiListener();
       },
     );
-  }
+  }*/
 
-  double rssiToMeter(double rssi) {
+  /*double rssiToMeter(double rssi) {
     int measuredPower = -51; // Measured Rssi value at a distance of 1 meter
     double N = 1; // Constant for the environment factor: value between 2 and 4 (1 is the one most performed now)
     double distance = pow(10, ((measuredPower - rssi) / pow(10, N))).toDouble();
     return distance;
-  }
+  }*/
 }

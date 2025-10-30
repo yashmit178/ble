@@ -315,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case BleStatus.available:
         EasyLoading.dismiss();
-        BlocProvider.of<BleBloc>(context).add(DiscoverDevices());
+        //BlocProvider.of<BleBloc>(context).add(DiscoverDevices());
         break;
       case BleStatus.discovering:
         EasyLoading.show(

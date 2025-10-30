@@ -5,7 +5,7 @@
 #include <IRremote.h>
 
 // BLE UUIDs - MUST match Flutter app exactly
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 // Hardware pin definitions
@@ -137,10 +137,10 @@ void setup() {
     pinMode(STATUS_LED_PIN, OUTPUT);
 
     // Initialize all devices to OFF state
-    digitalWrite(DOOR_RELAY_PIN, LOW);   // Door locked
-    digitalWrite(LIGHTS_RELAY_PIN, LOW); // Lights off
-    digitalWrite(AC_RELAY_PIN, LOW);     // AC off
-    digitalWrite(STATUS_LED_PIN, LOW);   // Status LED off
+    digitalWrite(DOOR_RELAY_PIN, LOW);    // Door locked
+    digitalWrite(LIGHTS_RELAY_PIN, LOW);  // Lights off
+    digitalWrite(AC_RELAY_PIN, LOW);      // AC off
+    digitalWrite(STATUS_LED_PIN, LOW);    // Status LED off
 
     // Initialize IR sender - Fix: provide the pin number
     irsend.begin(PROJECTOR_IR_PIN);
@@ -154,7 +154,7 @@ void setup() {
 
 void setupBLE() {
     // Create BLE Device with classroom-specific name
-    BLEDevice::init("ESP32_Classroom_A"); // Change per classroom
+    BLEDevice::init("ESP32_Classroom_A");  // Change per classroom
 
     // Create BLE Server
     pServer = BLEDevice::createServer();
@@ -166,10 +166,7 @@ void setupBLE() {
     // Create BLE Characteristic with defined UUID and NOTIFY capability
     pCharacteristic = pService->createCharacteristic(
             CHARACTERISTIC_UUID,
-            BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_NOTIFY
-    );
+            BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
 
     pCharacteristic->setCallbacks(new MyCallbacks());
 
@@ -196,14 +193,14 @@ void handleClassroomCommand(uint8_t *command) {
     // Validate protocol format
     if (command[0] != PROTOCOL_HEADER || command[4] != PROTOCOL_FOOTER) {
         Serial.println("Invalid protocol header/footer");
-        sendResponse(0x00); // Error response
+        sendResponse(0x00);  // Error response
         return;
     }
 
     // Validate checksum
     uint8_t expectedChecksum = command[0] ^ command[1] ^ command[2];
     if (command[3] != expectedChecksum) {
-        Serial.println("Invalid checksum");
+        Serial.printf("Invalid checksum. Expected: 0x%02X, Got: 0x%02X\n", expectedChecksum, command[3]);
         sendResponse(0x00); // Error response
         return;
     }
@@ -256,11 +253,11 @@ void handleClassroomCommand(uint8_t *command) {
 
         default:
             Serial.printf("Unknown command: 0x%02X\n", cmdType);
-            sendResponse(0x00); // Error response
+            sendResponse(0x00);  // Error response
             return;
     }
 
-    sendResponse(0x01); // Success response
+    sendResponse(0x01);  // Success response
 }
 
 void performClassroomSetup(uint8_t duration) {
@@ -283,7 +280,7 @@ void performClassroomSetup(uint8_t duration) {
 
     // Set auto-lock timer (duration + 10 minutes buffer)
     if (duration > 0) {
-        autoLockTimer = millis() + ((duration + 10) * 60000UL); // Convert to milliseconds
+        autoLockTimer = millis() + ((duration + 10) * 60000UL);  // Convert to milliseconds
         autoLockEnabled = true;
         Serial.printf("✓ Auto-lock timer set for %d minutes\n", duration + 10);
     }
@@ -336,14 +333,14 @@ void lockDoor() {
 void turnOnProjector() {
     // Send Sony projector power ON command (example)
     // Replace with your specific projector's IR codes
-    irsend.sendSony(0xA90, 12); // Sony power code
+    irsend.sendSony(0xA90, 12);  // Sony power code
     delay(100);
     Serial.println("📽️ Projector turned on");
 }
 
 void turnOffProjector() {
     // Send Sony projector power OFF command
-    irsend.sendSony(0xA90, 12); // Sony power toggle
+    irsend.sendSony(0xA90, 12);  // Sony power toggle
     delay(100);
     Serial.println("📽️ Projector turned off");
 }
@@ -371,7 +368,7 @@ void turnOffAC() {
 void sendResponse(uint8_t status) {
     // Send response back to Flutter app
     if (deviceConnected) {
-        uint8_t response[2] = {status, status}; // Simple response format
+        uint8_t response[2] = { status, status };  // Simple response format
         pCharacteristic->setValue(response, 2);
         pCharacteristic->notify();
         Serial.printf("Response sent: %02X\n", status);
@@ -381,7 +378,7 @@ void sendResponse(uint8_t status) {
 void loop() {
     // Handle BLE connection state changes
     if (!deviceConnected && oldDeviceConnected) {
-        delay(500);                   // This short delay *on disconnect* is fine
+        delay(500);                   // This short delay on disconnect is fine
         pServer->startAdvertising();  // Restart advertising
         Serial.println("Start advertising");
         oldDeviceConnected = deviceConnected;
@@ -400,9 +397,6 @@ void loop() {
             Serial.println("⏰ Auto-lock timer expired - locking classroom");
             performClassroomShutdown();
         }
-
-        // Optional: Add sensor readings, status updates, etc. here
     }
-
-    // NO delay() AT THE END
+    // There should be NO other code or delays in this loop.
 }
