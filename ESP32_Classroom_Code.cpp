@@ -89,24 +89,25 @@ class MyServerCallbacks : public BLEServerCallbacks {
 // BLE Characteristic Callbacks
 class MyCallbacks : public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-        // Read the value as an Arduino String object (which your library returns)
+        // Read the value as an Arduino String
         String rxValue = pCharacteristic->getValue();
-
-        // Get the length from the Arduino String
         size_t len = rxValue.length();
 
         if (len > 0) {
             Serial.print("Received ");
-            Serial.print((int)len);  // Cast size_t for Serial.print
+            Serial.print((int)len);
             Serial.println(" bytes.");
 
             if (len == COMMAND_LENGTH) {
-                // Create a buffer for the command
                 uint8_t command[COMMAND_LENGTH];
 
-                // Use the .getBytes() method to safely copy the raw bytes
-                // from the Arduino String into our command buffer
-                rxValue.getBytes(command, COMMAND_LENGTH);
+                // --- THIS IS THE FIX ---
+                // Do not use .getBytes(). It can corrupt binary data.
+                // Manually copy each byte from the string buffer.
+                for (int i = 0; i < COMMAND_LENGTH; i++) {
+                    command[i] = (uint8_t)rxValue[i];
+                }
+                // --- END OF FIX ---
 
                 Serial.print("Command bytes: ");
                 for (int i = 0; i < COMMAND_LENGTH; i++) {
@@ -114,11 +115,12 @@ class MyCallbacks : public BLECharacteristicCallbacks {
                 }
                 Serial.println();
 
-                // This is now safe to call
+                // Now, pass the correct command to the handler
                 handleClassroomCommand(command);
 
             } else {
                 Serial.printf("Invalid command length: %d (expected %d)\n", (int)len, COMMAND_LENGTH);
+                sendResponse(0x00);  // Error response
             }
         } else {
             Serial.println("Received empty write.");
@@ -201,7 +203,7 @@ void handleClassroomCommand(uint8_t *command) {
     uint8_t expectedChecksum = command[0] ^ command[1] ^ command[2];
     if (command[3] != expectedChecksum) {
         Serial.printf("Invalid checksum. Expected: 0x%02X, Got: 0x%02X\n", expectedChecksum, command[3]);
-        sendResponse(0x00); // Error response
+        sendResponse(0x00);  // Error response
         return;
     }
 
