@@ -89,8 +89,8 @@ class _ClassroomDeviceItemState extends State<ClassroomDeviceItem> {
             _buildLessonInfo(),
             SizedBox(height: 16),
             _buildClassroomStatus(),
-            SizedBox(height: 16),
-            _buildControlButtons(),
+            /*SizedBox(height: 16),
+            _buildControlButtons(),*/
           ],
         ),
       ),
@@ -231,7 +231,7 @@ class _ClassroomDeviceItemState extends State<ClassroomDeviceItem> {
     );
   }
 
-  Widget _buildControlButtons() {
+ /* Widget _buildControlButtons() {
     if (_currentLesson == null) {
       return Text(
         'Classroom controls unavailable without active lesson',
@@ -266,9 +266,9 @@ class _ClassroomDeviceItemState extends State<ClassroomDeviceItem> {
         ),
       ],
     );
-  }
+  }*/
 
-  Future<void> _setupClassroom() async {
+  /*Future<void> _setupClassroom() async {
     if (_currentLesson == null) return;
 
     try {
@@ -300,9 +300,9 @@ class _ClassroomDeviceItemState extends State<ClassroomDeviceItem> {
     } finally {
       setState(() => _isLoading = false);
     }
-  }
+  }*/
 
-  Future<void> _shutdownClassroom() async {
+  /*Future<void> _shutdownClassroom() async {
     try {
       setState(() => _isLoading = true);
       await widget.device.shutdownClassroom();
@@ -332,7 +332,7 @@ class _ClassroomDeviceItemState extends State<ClassroomDeviceItem> {
     } finally {
       setState(() => _isLoading = false);
     }
-  }
+  }*/
 
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute

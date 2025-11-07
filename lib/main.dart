@@ -2,7 +2,8 @@ import 'package:ble/src/app.dart';
 import 'package:ble/src/controllers/auth/auth_bloc.dart';
 import 'package:ble/src/controllers/auth/auth_event.dart';
 import 'package:ble/src/controllers/auth/auth_repository.dart';
-import 'package:ble/src/controllers/ble/ble_bloc.dart';
+//import 'package:ble/src/controllers/ble/ble_bloc.dart';
+import 'package:ble/src/background_service.dart';
 import 'package:ble/src/controllers/ble/ble_repository.dart';
 import 'package:ble/src/controllers/service/local_services.dart';
 import 'package:ble/src/controllers/service/service_repository.dart';
@@ -10,9 +11,17 @@ import 'package:ble/src/controllers/schedule/schedule_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await [
+    Permission.location,
+    Permission.bluetoothScan,
+    Permission.bluetoothConnect,
+    Permission.notification, // <-- NEW
+    Permission.ignoreBatteryOptimizations, // <-- NEW
+  ].request();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "dummy",
@@ -24,6 +33,7 @@ void main() async {
           "https://classroom-6206e-default-rtdb.europe-west1.firebasedatabase.app/",
     ),
   );
+  await initializeService();
   runApp(
     MultiRepositoryProvider(
       providers: [
@@ -42,10 +52,10 @@ void main() async {
           BlocProvider<AuthBloc>(
               create: (context) =>
                   AuthBloc(context.read<AuthRepository>())..add(AppStarted())),
-          BlocProvider<BleBloc>(
+          /*BlocProvider<BleBloc>(
             create: (context) =>
                 BleBloc(BleRepository(context.read<ServiceRepository>())),
-          )
+          )*/
         ],
         child: MyApp(),
       ),

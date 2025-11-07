@@ -1,5 +1,6 @@
 import 'package:ble/src/controllers/auth/auth_bloc.dart';
 import 'package:ble/src/controllers/auth/auth_event.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:ble/src/controllers/auth/auth_repository.dart';
 import 'package:ble/src/controllers/ble/ble_bloc.dart';
 import 'package:ble/src/controllers/ble/ble_event.dart';
@@ -29,8 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Remove duplicate permission handling - now handled in BLE bloc
-    BlocProvider.of<BleBloc>(context).add(CheckBleAvailability());
+    //BlocProvider.of<BleBloc>(context).add(CheckBleAvailability());
     _loadProfessorProfile();
     _loadClassroomMapping();
   }
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    BlocProvider.of<BleBloc>(context).add(StopDiscovering());
+  //  BlocProvider.of<BleBloc>(context).add(StopDiscovering());
     super.dispose();
   }
 
@@ -86,9 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: BlocConsumer<BleBloc, BleState>(
-        builder: (_, state) => _createView(state),
-        listener: (_, state) => _handleState(state),
+      body: StreamBuilder<Map<String, dynamic>?>(
+        stream: FlutterBackgroundService().on('update'),
+        builder: (context, snapshot) {
+          final status = snapshot.data?['status'] ?? "Initializing...";
+          final body = snapshot.data?['body'] ?? "Waiting for service...";
+          return _createView(status, body);
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showDeviceInfo(),
@@ -98,87 +102,35 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _createView(BleState state) {
-    if (state.connectedDevices.isEmpty) {
-      return Center(
+  Widget _createView(String status, String body) {
+    // Here you can check the status string to show different UI
+    // e.g., if (status == "Connected") show the device item.
+    // For now, this is a simple status display:
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.bluetooth_searching,
-              size: 64,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
+            if (status == "Scanning for Classroom A...")
+              const CircularProgressIndicator(),
+            if (status != "Scanning for Classroom A...")
+              const Icon(Icons.check_circle, color: Colors.green, size: 60),
+            const SizedBox(height: 20),
             Text(
-              'No devices connected',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+              status,
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'Make sure your ESP32 classroom device is powered on and nearby',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              body,
+              style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],
         ),
-      );
-    }
-
-    // Separate ESP32 classroom devices from legacy smart switches
-    final classroomDevices =
-        state.connectedDevices.whereType<ESP32Classroom>().toList();
-    final smartSwitches =
-        state.connectedDevices.whereType<SmartSwitch>().toList();
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ESP32 Classroom Devices Section
-          if (classroomDevices.isNotEmpty) ...[
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Classroom Devices',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-            ),
-            ...classroomDevices.map((device) {
-              final classroomId = _classroomMapping[device.uuid];
-              return ClassroomDeviceItem(
-                device: device,
-                professorId: _professorProfile?['professorId'],
-                classroomId: classroomId,
-              );
-            }).toList(),
-          ],
-
-          // Legacy Smart Switches Section
-          if (smartSwitches.isNotEmpty) ...[
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Smart Switches',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-            ),
-            ...smartSwitches
-                .map((device) => _buildSmartSwitchItem(device))
-                .toList(),
-          ],
-
-          // Professor Information Section
-          if (_professorProfile != null) _buildProfessorInfoCard(),
-        ],
       ),
     );
   }
@@ -287,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleState(BleState state) {
+  /*void _handleState(BleState state) {
     print(state.status);
     switch (state.status) {
       case BleStatus.checkingAvailability:
@@ -365,5 +317,5 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         break;
     }
-  }
+  }*/
 }

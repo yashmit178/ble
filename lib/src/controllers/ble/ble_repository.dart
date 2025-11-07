@@ -164,6 +164,58 @@ class BleRepository {
         "Repository: Services loaded for ${device.name}"); // Add logging
   }
 
+  Stream<AbstractDevice> startScanning() {
+    print("Background Service: Starting scan...");
+
+    // Using a StreamController to manage this
+    late StreamController<AbstractDevice> controller;
+    StreamSubscription? scanSub;
+
+    controller = StreamController<AbstractDevice>(
+      onListen: () async {
+        final knownDevices = await _localServices.getKnownDevices();
+        if (!knownDevices.status) {
+          controller.addError('Could not load known devices');
+          controller.close();
+          return;
+        }
+
+        FlutterBluePlus.startScan(
+          timeout: const Duration(seconds: 20),
+        );
+
+        scanSub = FlutterBluePlus.scanResults.listen((results) {
+          for (ScanResult r in results) {
+            if (knownDevices.data.contains(r.device.remoteId.str)) {
+              print('>>> MATCH FOUND: ${r.device.remoteId.str}. Yielding device.');
+              FlutterBluePlus.stopScan();
+              controller.add(_createAbstractDevice(r.device, DeviceType.esp32Classroom));
+              controller.close(); // We are done
+              scanSub?.cancel();
+              return;
+            }
+          }
+        });
+      },
+      onCancel: () {
+        FlutterBluePlus.stopScan();
+        scanSub?.cancel();
+      },
+    );
+
+    return controller.stream;
+  }
+
+  /// A helper to listen to connection state for the background service.
+  StreamSubscription<BluetoothConnectionState> listenToConnection(
+      AbstractDevice device,
+      void Function(BluetoothConnectionState state) onStateChanged,
+      ) {
+    return device.bleDevice!.connectionState.listen((state) {
+      onStateChanged(state);
+    });
+  }
+
   Future<void> disconnect(AbstractDevice device) async {
     await device.disconnect();
   }
