@@ -4,6 +4,7 @@ import 'package:ble/src/models/smart_switch/smart_switch.dart';
 import 'package:ble/src/models/esp32_classroom/esp32_classroom.dart';
 import 'package:ble/src/models/esp32_classroom/esp32_classroom_profile.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'dart:async';
 
 enum DeviceType {
   smartSwitch,
@@ -164,16 +165,37 @@ class BleRepository {
         "Repository: Services loaded for ${device.name}"); // Add logging
   }
 
+  Future<void> disconnect(AbstractDevice device) async {
+    await device.disconnect();
+  }
+
+  // Helper method to get ESP32 classroom devices only
+  List<AbstractDevice> getESP32ClassroomDevices(
+      List<AbstractDevice> allDevices) {
+    return allDevices
+        .whereType<ESP32Classroom>()
+        .cast<AbstractDevice>()
+        .toList();
+  }
+
+  // Helper method to get smart switch devices only
+  List<AbstractDevice> getSmartSwitchDevices(List<AbstractDevice> allDevices) {
+    return allDevices.whereType<SmartSwitch>().cast<AbstractDevice>().toList();
+  }
+  // ... after your disconnect() method ...
+
+  /// A simplified scan stream for the background service.
+  /// It only yields the *first* matching device it finds.
   Stream<AbstractDevice> startScanning() {
     print("Background Service: Starting scan...");
 
-    // Using a StreamController to manage this
     late StreamController<AbstractDevice> controller;
     StreamSubscription? scanSub;
 
     controller = StreamController<AbstractDevice>(
       onListen: () async {
-        final knownDevices = await _localServices.getKnownDevices();
+        // --- FIX: Use '_serviceRepository' and 'getKnownDeviceUuid' ---
+        final knownDevices = await _serviceRepository.getKnownDeviceUuid();
         if (!knownDevices.status) {
           controller.addError('Could not load known devices');
           controller.close();
@@ -214,23 +236,5 @@ class BleRepository {
     return device.bleDevice!.connectionState.listen((state) {
       onStateChanged(state);
     });
-  }
-
-  Future<void> disconnect(AbstractDevice device) async {
-    await device.disconnect();
-  }
-
-  // Helper method to get ESP32 classroom devices only
-  List<AbstractDevice> getESP32ClassroomDevices(
-      List<AbstractDevice> allDevices) {
-    return allDevices
-        .whereType<ESP32Classroom>()
-        .cast<AbstractDevice>()
-        .toList();
-  }
-
-  // Helper method to get smart switch devices only
-  List<AbstractDevice> getSmartSwitchDevices(List<AbstractDevice> allDevices) {
-    return allDevices.whereType<SmartSwitch>().cast<AbstractDevice>().toList();
   }
 }

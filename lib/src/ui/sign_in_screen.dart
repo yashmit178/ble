@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_background_service/flutter_background_service.dart'; // <-- ADD THIS
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -102,6 +103,7 @@ class _SignInScreenState extends State<SignInScreen> {
         break;
       case AuthStatus.authenticated:
         EasyLoading.dismiss();
+        FlutterBackgroundService().invoke('userLoggedIn');
         Navigator.of(context)
             .pushNamedAndRemoveUntil('/home', (route) => false);
         break;

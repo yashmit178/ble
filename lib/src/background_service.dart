@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:ble/src/controllers/service/service_repository.dart';
 
 // --- FIX: Define Notification Plugin as a global/static variable ---
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -82,8 +83,10 @@ void onStart(ServiceInstance service) async {
   // --- 6. Service State Variables ---
   LessonSchedule? _activeLesson;
   AbstractDevice? _connectedDevice;
-  StreamSubscription<AbstractDevice>? _scanSubscription; // <-- FIX: Stream is of AbstractDevice
+  StreamSubscription<AbstractDevice>? _scanSubscription;
+  StreamSubscription<BluetoothConnectionState>? _connectionSubscription; // <-- FIX: Added this back
   bool _isConnecting = false;
+  bool _isCheckingSchedule = false;
   String _currentStatus = "Service initialized. Waiting for login.";
 
   // --- 7. Service Notification Helper (No changes) ---
@@ -106,6 +109,19 @@ void onStart(ServiceInstance service) async {
   }
 
   updateNotification('Classroom Automation', 'Service is running.');
+
+  // Listen for messages from the UI
+  service.on('userLoggedIn').listen((event) async {
+    print("Background Service: Received 'userLoggedIn' event.");
+    // Re-check the professor ID immediately
+    final professorId = await authRepo.getProfessorId();
+    if (professorId != null) {
+      _currentStatus = "User logged in. Checking schedule...";
+      updateNotification('Automation Active', _currentStatus);
+      // We manually trigger the timer's logic by NOT waiting for the 1-minute timer.
+      // To do this safely, we'll create a dedicated function.
+    }
+  });
 
   // --- 8. Core Automation Logic ---
   Timer.periodic(const Duration(minutes: 1), (timer) async {
@@ -131,9 +147,7 @@ void onStart(ServiceInstance service) async {
         _currentStatus = "Scanning for $classroomId...";
         updateNotification('Active Lesson', _currentStatus);
 
-        if (_scanSubscription == null) {
-          // --- FIX: Call is startDiscovering() ---
-          _scanSubscription = bleRepo.startDiscovering().listen(
+        _scanSubscription ??= bleRepo.startScanning().listen(
                   (device) async {
                 if (_isConnecting) return;
                 _isConnecting = true;
@@ -144,10 +158,23 @@ void onStart(ServiceInstance service) async {
                 updateNotification('Classroom Found', _currentStatus);
 
                 try {
-                  // --- FIX: Pass the required callback function ---
-                  await bleRepo.connect(device, (disconnectedDevice, state) {
+                  // --- FIX: Use listenToConnection helper ---
+                  _connectionSubscription = bleRepo.listenToConnection(device, (state) {
                     if (state == BluetoothConnectionState.disconnected) {
                       _connectedDevice = null;
+                      _connectionSubscription?.cancel();
+                      _connectionSubscription = null;
+                      updateNotification('Device Disconnected', 'Will re-scan if lesson is active.');
+                    }
+                  });
+
+                  // --- FIX: Pass the required callback function to connect ---
+                  await bleRepo.connect(device, (disconnectedDevice, state) {
+                    // This is the onStateChange callback required by your repository
+                    if (state == BluetoothConnectionState.disconnected) {
+                      _connectedDevice = null;
+                      _connectionSubscription?.cancel();
+                      _connectionSubscription = null;
                       updateNotification('Device Disconnected', 'Will re-scan if lesson is active.');
                     }
                   });
@@ -155,11 +182,11 @@ void onStart(ServiceInstance service) async {
                   _connectedDevice = device;
 
                   // --- G. THIS IS YOUR AUTOMATION ---
-                  // --- FIX: Cast to ESP32Classroom and check getter ---
+                  // --- FIX: Cast to ESP32Classroom and use 'duration' getter ---
                   if (_connectedDevice is ESP32Classroom) {
                     _currentStatus = "Connected! Setting up classroom...";
                     updateNotification('Connected', _currentStatus);
-                    await (_connectedDevice as ESP32Classroom).setupClassroom(_activeLesson!.durationInMinutes);
+                    await (_connectedDevice as ESP32Classroom).setupClassroom(_activeLesson!.durationMinutes);
                     _currentStatus = "Classroom is ready.";
                     updateNotification('Setup Complete', _currentStatus);
                   } else {
@@ -172,11 +199,12 @@ void onStart(ServiceInstance service) async {
                   _currentStatus = "Connection failed. Retrying...";
                   updateNotification('Connection Error', _currentStatus);
                   _connectedDevice = null;
+                  _connectionSubscription?.cancel(); // Clean up listener on failure
+                  _connectionSubscription = null;
                 } finally {
                   _isConnecting = false;
                 }
               },
-              // Add onError to handle scan failures
               onError: (e) {
                 print("Scan error: $e");
                 _scanSubscription?.cancel();
@@ -187,7 +215,6 @@ void onStart(ServiceInstance service) async {
                 _scanSubscription = null;
               }
           );
-        }
       } else if (_connectedDevice != null) {
         _currentStatus = "Classroom is ready.";
         updateNotification('Setup Complete', _currentStatus);
@@ -213,6 +240,8 @@ void onStart(ServiceInstance service) async {
         }
         await _connectedDevice!.disconnect();
         _connectedDevice = null;
+        _connectionSubscription?.cancel(); // Clean up listener
+        _connectionSubscription = null;
       }
     }
   });
