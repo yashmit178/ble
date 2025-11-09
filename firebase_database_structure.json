@@ -1,93 +1,1045 @@
 {
-  "users": {
-    "username1": {
-      "password": "abcd",
-      "professorId": "prof_001",
-      "name": "Dr. John Smith",
-      "department": "Computer Science",
-      "email": "john.smith@university.edu"
-    },
-    "username2": {
-      "password": "1234",
-      "professorId": "prof_002",
-      "name": "Prof. Sarah Johnson",
-      "department": "Mathematics",
-      "email": "sarah.johnson@university.edu"
-    },
-    "admin": {
-      "password": "admin",
-      "professorId": "prof_admin",
-      "name": "System Administrator",
-      "department": "IT Services",
-      "email": "admin@university.edu"
-    }
-  },
-  "lessons": {
-    "lesson_001": {
-      "professorId": "prof_001",
+  "access_logs": {
+    "-Od4MG15LZ_UjvMtE0f9": {
+      "action": "setup",
       "classroomId": "classroom_a",
-      "subjectName": "Data Structures & Algorithms",
-      "startTime": "2024-12-18T07:00:00.000Z",
-      "endTime": "2024-12-18T23:30:00.000Z",
-      "isActive": true
-    },
-    "lesson_002": {
-      "professorId": "prof_002",
-      "classroomId": "classroom_b",
-      "subjectName": "Linear Algebra",
-      "startTime": "2024-12-18T07:00:00.000Z",
-      "endTime": "2024-12-18T23:30:00.000Z",
-      "isActive": true
-    },
-    "lesson_003": {
       "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:18:38.342430"
+    },
+    "-Od4MJ1AGp0F2MoqPhsy": {
+      "action": "setup",
       "classroomId": "classroom_a",
-      "subjectName": "Database Systems",
-      "startTime": "2024-12-18T14:00:00.000Z",
-      "endTime": "2024-12-18T23:30:00.000Z",
-      "isActive": true
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:18:50.635165"
+    },
+    "-Od4MKFG1uBRUZ6s8Ygw": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:18:55.633172"
+    },
+    "-Od4MWJLBbv9v5d5lUHQ": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:19:45.046390"
+    },
+    "-Od4MXYBtaTpgWGtxmSQ": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:19:50.092421"
+    },
+    "-Od4MYERFsUBYeZLI-Yp": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:19:52.924964"
+    },
+    "-Od4MZiDD2n1sHRAbbyT": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:19:58.990609"
+    },
+    "-Od4Mx5i9YUs2KivmWx2": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:21:38.862845"
+    },
+    "-Od4MzEtvFkefepeBqLX": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:21:47.641747"
+    },
+    "-Od4N-WbKynykmdASDUb": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T17:21:52.871702"
+    },
+    "-Od4vsXme1f3PIYzE00N": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T19:58:37.362499"
+    },
+    "-Od4vwABr9CDfqXPgOLF": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T19:58:52.236840"
+    },
+    "-Od4vyDtJArheIjUz_v1": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T19:59:00.665139"
+    },
+    "-Od4xLqTn5owB8YJXQ8R": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:05:03.646364"
+    },
+    "-Od4xYXL4i12XG8vc4_U": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:05:55.606740"
+    },
+    "-Od5-fcq6HPqrSoHpqjB": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:19:35.223043"
+    },
+    "-Od5-hTjusBqW74sOZZ4": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:19:42.767565"
+    },
+    "-Od51v-GUfFbBRVceKR5": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:22.449144"
+    },
+    "-Od51vvJOd3KvlB1XHgI": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:26.228326"
+    },
+    "-Od51w7q1PpUtqHq0-Cs": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:27.094436"
+    },
+    "-Od51wCHL0sfNUp9xedx": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:27.378347"
+    },
+    "-Od51wGya-EG233oIDBI": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:27.678265"
+    },
+    "-Od51wKKNO4P8R6AHBdJ": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:27.893914"
+    },
+    "-Od51wNTzVLmdsD9MZnF": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:28.094244"
+    },
+    "-Od51wQJnDG8DnSsdXYH": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:28.276562"
+    },
+    "-Od51wTAUWuN7P_sdkGB": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:28.459377"
+    },
+    "-Od51wW2LopoEPkscSF4": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:28.643880"
+    },
+    "-Od51wYuKlxlvsvocxiY": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:28.826554"
+    },
+    "-Od51wb1zie839RO6tju": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:29.026568"
+    },
+    "-Od51wh18q1Ose4fqUTl": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:29.410397"
+    },
+    "-Od51wk8hEH8khRvW3Z4": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:29.609521"
+    },
+    "-Od51wnG5StzkzHRhux6": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:29.809474"
+    },
+    "-Od51wqOsZpHoBmHmUrP": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:30.009682"
+    },
+    "-Od51wtWTn9ZxCZ-AyJG": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:30.209624"
+    },
+    "-Od51wwcR0EO-Cd4QXBR": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:30.408967"
+    },
+    "-Od51x1O9yFV6IMHYfOd": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:30.777181"
+    },
+    "-Od51x4DI2TXEiDabbAp": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:30.958914"
+    },
+    "-Od51x6oAsKUdOC16u3g": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:31.124625"
+    },
+    "-Od51x9gj8v_sr_Durn4": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:31.308083"
+    },
+    "-Od51xCYJv-i8cq897LC": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:31.491399"
+    },
+    "-Od51xFC1usXgQEkZAz8": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:31.661218"
+    },
+    "-Od51xI2mqrGLBaUnuME": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:31.843187"
+    },
+    "-Od51xKe6BSujqAXUGDN": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:32.010307"
+    },
+    "-Od51xNEVTJYl9AGHaXx": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:32.175555"
+    },
+    "-Od51xQb4Q8m27kIlss5": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:32.391756"
+    },
+    "-Od51xVI1yUaI9o_w1t_": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:32.691689"
+    },
+    "-Od51xYwEN_Lb_D12qjg": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:32.924945"
+    },
+    "-Od51xctSAq_ZHUjlox3": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:33.241225"
+    },
+    "-Od51xfkQZAF4cCOK9nR": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:33.424771"
+    },
+    "-Od51xiLUKyCJf8YseE6": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:33.590477"
+    },
+    "-Od51xlErJ1s8_EuSaWr": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:33.775403"
+    },
+    "-Od51xo4NemzlK7RPu5B": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:33.957669"
+    },
+    "-Od51xqwPfvQuEAvG9hI": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:34.141014"
+    },
+    "-Od51xtnr9W_9JAJLpVx": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:34.323798"
+    },
+    "-Od51xw7hXx5gDPfL_Aw": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:34.473041"
+    },
+    "-Od51yarEmHCZLCjxc7w": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:37.207109"
+    },
+    "-Od51ytacqTyuT_M3Qri": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:38.406123"
+    },
+    "-Od51z8F7o0yBn-rCBhA": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:39.408274"
+    },
+    "-Od51zJ8tR5OG_zAjzt3": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:40.105610"
+    },
+    "-Od51zcgzKYWDWGK4DR1": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:41.420984"
+    },
+    "-Od51zgKhOntLpmQzZXt": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:41.654043"
+    },
+    "-Od51zntuCt4RXZ_o1Ql": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:42.137815"
+    },
+    "-Od51zsabfH4bzkwm4YH": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:42.438172"
+    },
+    "-Od51zy2bKUpvCB0s_dE": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:42.787743"
+    },
+    "-Od52-91o42nWMXnhTJz": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:43.554694"
+    },
+    "-Od52-Dy-XfVkFC28zyL": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:43.870874"
+    },
+    "-Od52-JyhE3GalxvQZpe": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:44.254457"
+    },
+    "-Od52-OdHlTmASxtDnKT": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:44.553490"
+    },
+    "-Od52-Us5LhBku3luj2x": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:44.953038"
+    },
+    "-Od52-Z_IBuZYdGtoWXv": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:45.253104"
+    },
+    "-Od52-eJsIIMvOJQ7yAw": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:45.620950"
+    },
+    "-Od52-hgWCtTcUf9SK_e": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:45.836270"
+    },
+    "-Od52-lqB311NllCp-1N": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:46.102267"
+    },
+    "-Od52-qGwfT7Vo_npYU_": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:46.385691"
+    },
+    "-Od52-vFcP_MrdvRnN5e": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:46.704296"
+    },
+    "-Od52-yrn7pKWMcQVDrf": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:46.935567"
+    },
+    "-Od5201lc0O1KrEeHEjQ": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:47.185101"
+    },
+    "-Od5206CcQ0EfP-9hu48": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:47.469129"
+    },
+    "-Od520AsOJEG3aPNyLdx": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:47.769025"
+    },
+    "-Od520EFIN6tecXofdSS": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:47.984396"
+    },
+    "-Od520IguEIBAvgBvKrL": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:48.268710"
+    },
+    "-Od520MKoiqxZflFz6yP": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:48.501136"
+    },
+    "-Od520QVHZeisOElYhE_": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:48.768873"
+    },
+    "-Od520Y1Ma6pR9OXxfTf": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:49.250527"
+    },
+    "-Od520aw5mg6T_Xsmh0S": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:49.500912"
+    },
+    "-Od520e_eT4_Fgf3E8LS": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:49.733558"
+    },
+    "-Od520iEwETE5jZzZQsn": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:49.967108"
+    },
+    "-Od520lsuUAOLIPXQuXF": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:50.200821"
+    },
+    "-Od520pGHqrollexNVqN": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:50.417182"
+    },
+    "-Od520sexQpCju588SH1": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:50.634364"
+    },
+    "-Od520vlaCfsJwzsvrLN": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:50.833398"
+    },
+    "-Od520ytTpCBiOk1UJli": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:51.033146"
+    },
+    "-Od5210ko_lbLWy0_Pxf": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:51.216339"
+    },
+    "-Od5214PokC_sL2juO7I": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:51.450090"
+    },
+    "-Od5217GBCTKLQZc3jqI": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:51.633162"
+    },
+    "-Od521CzlAbXmYX0VIgZ": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:51.999564"
+    },
+    "-Od521GOyWo-YfhearDc": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:52.217117"
+    },
+    "-Od521JkqMWJ_xSd-hRa": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:52.432762"
+    },
+    "-Od521Mt6FqO6Q-f68HE": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:52.633192"
+    },
+    "-Od521Q-0Szn408xnwhy": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:52.832706"
+    },
+    "-Od521T6CdejVjNcFdve": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:53.031966"
+    },
+    "-Od521XprVjZdKEbZ4A4": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:53.333133"
+    },
+    "-Od521_PuDQr4q8p3LJ6": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:53.498207"
+    },
+    "-Od521dJi6Q5INdqheGT": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:53.748540"
+    },
+    "-Od521ghryNrTa5q974q": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:53.965898"
+    },
+    "-Od521ka7UTkqL-UeS3h": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:54.214557"
+    },
+    "-Od521nzcKog_mWZ0hDc": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:54.431050"
+    },
+    "-Od521rggPpYo5S-ZCoX": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:54.668185"
+    },
+    "-Od521ukzr4oy8BDHyDp": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:54.864070"
+    },
+    "-Od5221IG6hFysLAclv5": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:55.347838"
+    },
+    "-Od5225C7fZSjIhK57YI": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:55.597526"
+    },
+    "-Od522BC-LIW2BEfc0nM": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:55.981108"
+    },
+    "-Od522Dn1x5Jyvvwm2Ig": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:56.147826"
+    },
+    "-Od522Ge4rSfsZhbzd0D": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:56.330478"
+    },
+    "-Od522JGhtO1x5dBHZ2M": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:56.497278"
+    },
+    "-Od522M7xfdOtwN2s_8b": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:56.680388"
+    },
+    "-Od522OiLIMWmiRotlMb": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:56.847033"
+    },
+    "-Od522RKp4LcobukoG9l": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:57.013146"
+    },
+    "-Od522TisVEHhRA9wo7K": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:57.166517"
+    },
+    "-Od522XqFPzxVH6AuCXT": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:57.430445"
+    },
+    "-Od522bn_RNu5_UA5Gda": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:57.747204"
+    },
+    "-Od522ee5EAZyAMp-JuM": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:57.930153"
+    },
+    "-Od522hKiOhHAaKxf2Et": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:58.101332"
+    },
+    "-Od522mT9G8L9-4Nx8w8": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:58.431013"
+    },
+    "-Od522vKPM9wcVveG0kh": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:58.997128"
+    },
+    "-Od522yAO1IUKbxbXD2J": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:59.179156"
+    },
+    "-Od5233RM-wfDlXYxgTq": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:59.580736"
+    },
+    "-Od5238N436iZ9hXW4Th": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:29:59.896681"
+    },
+    "-Od523DqzcivAdv3HcAD": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:00.246699"
+    },
+    "-Od523JKywGk9bAgfClj": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:00.597994"
+    },
+    "-Od5244-cZF2bSUcUrk8": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:03.712910"
+    },
+    "-Od524GDsnH4KVkU3L4Z": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:04.494729"
+    },
+    "-Od524J3NdZe3nJbr350": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:04.676957"
+    },
+    "-Od524Rxzw016TqoEAnn": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:05.245979"
+    },
+    "-Od524apyaJCXxkRtpm-": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:05.877523"
+    },
+    "-Od524ek9JuBMf9RIcv9": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:06.128597"
+    },
+    "-Od524i6O05PgvsC_fda": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:06.343349"
+    },
+    "-Od524lVOVgiLiXBrFDp": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:06.560674"
+    },
+    "-Od524o5UMnu2nkpvDSk": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:06.726132"
+    },
+    "-Od524rUytSan8uOamSU": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:06.943649"
+    },
+    "-Od524uas5EqVjlFvurs": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:07.142163"
+    },
+    "-Od524ynV3J4jO7_dUAD": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:07.411088"
+    },
+    "-Od52506181qNNZplbCc": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:07.559352"
+    },
+    "-Od5253UvG_uGC5iK-3Y": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:07.775870"
+    },
+    "-Od52578ib89Kpa8BK_2": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:08.009136"
+    },
+    "-Od525AFQEK8Vm1wehah": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:08.208396"
+    },
+    "-Od525Ki5_TiWTzF199s": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:08.878370"
+    },
+    "-Od525OryC7pJ4WyC9nw": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:09.143112"
+    },
+    "-Od525SkOwPa_TA3cbr0": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:09.392144"
+    },
+    "-Od525VaaIcyF4e9lHfT": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:09.575050"
+    },
+    "-Od525Yzidu4VXYrfOtG": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:09.791436"
+    },
+    "-Od525aqkfOl-FRFvfsI": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:09.974374"
+    },
+    "-Od525eWZ-Ea5KKext2E": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:10.209130"
+    },
+    "-Od525hscQqtdq2v27Hu": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:10.424170"
+    },
+    "-Od525phZA2iVT5KDYHY": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:10.925960"
+    },
+    "-Od525z_Vc6rj0VX5ltK": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:11.557810"
+    },
+    "-Od5262E_vLGv3w23vFS": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:11.791230"
+    },
+    "-Od5266PlXpU2iJAE6MC": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:12.058288"
+    },
+    "-Od526COrzLshqxSXmnL": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:12.441769"
+    },
+    "-Od526G1scxSwsxppzDi": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:12.674241"
+    },
+    "-Od526Jvtf-tgkBEZYYA": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:12.923937"
+    },
+    "-Od526NK4ITOTghUeUNy": {
+      "action": "shutdown",
+      "classroomId": "classroom_a",
+      "professorId": "prof_001",
+      "timestamp": "2025-11-02T20:30:13.141166"
+    },
+    "log_001": {
+      "action": "setup",
+      "classroomId": "classroom_a",
+      "duration": 90,
+      "lessonId": "lesson_001",
+      "professorId": "prof_001",
+      "timestamp": "2024-12-18T08:58:30.000Z"
     }
   },
   "classrooms": {
     "classroom_a": {
-      "name": "Room A-101",
       "building": "Computer Science Building",
       "capacity": 50,
-      "hasProjector": true,
+      "espMacAddress": "24:6F:28:7C:94:FE",
       "hasAC": true,
-      "hasWhiteboard": true,
-      "espMacAddress": "24:6F:28:7C:94:FC",
-      "isActive": true
-    },
-    "classroom_b": {
-      "name": "Room B-205",
-      "building": "Mathematics Building",
-      "capacity": 40,
       "hasProjector": true,
-      "hasAC": false,
       "hasWhiteboard": true,
-      "espMacAddress": "24:6F:28:DD:EE:FF",
-      "isActive": true
-    },
-    "classroom_c": {
-      "name": "Room C-301",
-      "building": "Physics Building",
-      "capacity": 35,
-      "hasProjector": false,
-      "hasAC": true,
-      "hasWhiteboard": false,
-      "espMacAddress": "30:AE:A4:11:22:33",
-      "isActive": true
+      "isActive": true,
+      "name": "Room A-101"
     }
   },
-  "access_logs": {
-    "log_001": {
-      "professorId": "prof_001",
+  "lessons": {
+    "lesson_001": {
       "classroomId": "classroom_a",
-      "action": "setup",
-      "timestamp": "2024-12-18T08:58:30.000Z",
-      "lessonId": "lesson_001",
-      "duration": 90
+      "endTime": "2025-11-07T20:07:00.000Z",
+      "isActive": true,
+      "professorId": "prof_001",
+      "startTime": "2025-11-07T18:00:00.000Z",
+      "subjectName": "Data Structures & Algorithms"
+    },
+    "lesson_002": {
+      "classroomId": "classroom_b",
+      "endTime": "2024-12-18T23:30:00.000Z",
+      "isActive": true,
+      "professorId": "prof_002",
+      "startTime": "2024-12-18T07:00:00.000Z",
+      "subjectName": "Linear Algebra"
+    },
+    "lesson_003": {
+      "classroomId": "classroom_a",
+      "endTime": "2025-11-01T22:40:00.000Z",
+      "isActive": true,
+      "professorId": "prof_001",
+      "startTime": "2025-11-01T21:40:00.000Z",
+      "subjectName": "Live BLE Testing"
+    }
+  },
+  "users": {
+    "admin": {
+      "department": "IT Services",
+      "email": "admin@university.edu",
+      "name": "System Administrator",
+      "password": "admin",
+      "professorId": "prof_admin"
+    },
+    "username1": {
+      "department": "Computer Science",
+      "email": "john.smith@university.edu",
+      "name": "Dr. John Smith",
+      "password": "abcd",
+      "professorId": "prof_001"
+    },
+    "username2": {
+      "department": "Mathematics",
+      "email": "sarah.johnson@university.edu",
+      "name": "Prof. Sarah Johnson",
+      "password": "1234",
+      "professorId": "prof_002"
     }
   }
 }

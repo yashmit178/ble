@@ -6,16 +6,15 @@ import 'package:ble/src/controllers/ble/ble_repository.dart';
 import 'package:ble/src/controllers/schedule/schedule_repository.dart';
 import 'package:ble/src/controllers/service/local_services.dart';
 import 'package:ble/src/models/abstract_device.dart';
-import 'package:ble/src/models/esp32_classroom/esp32_classroom.dart'; // <-- FIX: Import ESP32 model
+import 'package:ble/src/models/esp32_classroom/esp32_classroom.dart';
 import 'package:ble/src/models/lesson_schedule.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:ble/src/controllers/service/service_repository.dart';
 
-// --- FIX: Define Notification Plugin as a global/static variable ---
+// Notification Plugin as global variable
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
@@ -26,7 +25,7 @@ const int notificationId = 888;
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
-  // --- 1. Configure Notifications ---
+  // Configure Notifications
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     notificationChannelId,
     'Classroom Automation Service',
@@ -39,7 +38,7 @@ Future<void> initializeService() async {
       AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  // --- 2. Configure the Service ---
+  // Configure the Service
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
@@ -47,7 +46,6 @@ Future<void> initializeService() async {
       autoStart: true,
       notificationChannelId: notificationChannelId,
       initialNotificationTitle: 'Classroom Automation',
-      // --- FIX: Parameter name is 'initialNotificationContent' ---
       initialNotificationContent: 'Service is starting...',
       foregroundServiceNotificationId: notificationId,
     ),
@@ -59,7 +57,7 @@ Future<void> initializeService() async {
   );
 }
 
-// --- 3. iOS Background Entrypoint ---
+// iOS Background Entrypoint
 @pragma('vm:entry-point')
 Future<bool> onIosBackground(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,30 +65,41 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   return true;
 }
 
-// --- 4. Main Background Service Entrypoint ---
+// Main Background Service Entrypoint
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
 
-  // --- 5. Initialize Repositories ---
-  await Firebase.initializeApp();
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "dummy",
+      appId: "dummy",
+      messagingSenderId: "dummy",
+      projectId: "dummy",
+      databaseURL:
+      "https://classroom-6206e-default-rtdb.europe-west1.firebasedatabase.app/",
+    ),
+  );
 
+  // Initialize Repositories
   final authRepo = AuthRepository();
   final scheduleRepo = ScheduleRepository();
   final bleRepo = BleRepository(LocalServices());
 
-  // --- 6. Service State Variables ---
+  // Service State Variables
   LessonSchedule? _activeLesson;
   AbstractDevice? _connectedDevice;
   StreamSubscription<AbstractDevice>? _scanSubscription;
-  StreamSubscription<BluetoothConnectionState>? _connectionSubscription; // <-- FIX: Added this back
+  StreamSubscription<BluetoothConnectionState>? _connectionSubscription;
   bool _isConnecting = false;
-  bool _isCheckingSchedule = false;
-  String _currentStatus = "Service initialized. Waiting for login.";
+  String _currentStatus = "Service initialized. Checking authentication...";
+  int updateCounter = 0;
 
-  // --- 7. Service Notification Helper (No changes) ---
+  // Service Notification Helper
   void updateNotification(String title, String body) {
+    print("BackgroundService: $title - $body");
     flutterLocalNotificationsPlugin.show(
       notificationId,
       title,
@@ -110,139 +119,192 @@ void onStart(ServiceInstance service) async {
 
   updateNotification('Classroom Automation', 'Service is running.');
 
-  // Listen for messages from the UI
-  service.on('userLoggedIn').listen((event) async {
-    print("Background Service: Received 'userLoggedIn' event.");
-    // Re-check the professor ID immediately
-    final professorId = await authRepo.getProfessorId();
-    if (professorId != null) {
-      _currentStatus = "User logged in. Checking schedule...";
-      updateNotification('Automation Active', _currentStatus);
-      // We manually trigger the timer's logic by NOT waiting for the 1-minute timer.
-      // To do this safely, we'll create a dedicated function.
-    }
-  });
+  // Core Automation Logic
+  Timer.periodic(const Duration(seconds: 30), (timer) async {
+    try {
+      print("BackgroundService: Running automation cycle...");
 
-  // --- 8. Core Automation Logic ---
-  Timer.periodic(const Duration(minutes: 1), (timer) async {
-    final professorId = await authRepo.getProfessorId();
-    if (professorId == null) {
-      _currentStatus = "User is not logged in. Paused.";
-      updateNotification('Automation Paused', 'Please log in to the app.');
-      _scanSubscription?.cancel();
-      _scanSubscription = null;
-      _connectedDevice?.disconnect();
-      _connectedDevice = null;
-      return;
-    }
+      // Check if user is authenticated
+      final hasToken = await authRepo.hasToken();
+      final professorId = await authRepo.getProfessorId();
+      final username = await authRepo.getUsername();
 
-    const classroomId = "classroom_a";
-    _activeLesson = await scheduleRepo.getCurrentLesson(professorId, classroomId);
+      print(
+          "BackgroundService: Auth status - hasToken: $hasToken, professorId: $professorId, username: $username");
 
-    if (_activeLesson != null) {
-      // --- LESSON IS ACTIVE ---
-      _currentStatus = "Lesson found: ${_activeLesson!.subjectName}.";
+      if (!hasToken || professorId == null) {
+        _currentStatus = "User is not logged in. Service paused.";
+        updateNotification('Automation Paused', 'Please log in to the app.');
 
-      if (_connectedDevice == null && !_isConnecting) {
-        _currentStatus = "Scanning for $classroomId...";
-        updateNotification('Active Lesson', _currentStatus);
+        // Clean up connections
+        await _scanSubscription?.cancel();
+        _scanSubscription = null;
+        await _connectedDevice?.disconnect();
+        _connectedDevice = null;
+        await _connectionSubscription?.cancel();
+        _connectionSubscription = null;
+        return;
+      }
 
-        _scanSubscription ??= bleRepo.startScanning().listen(
+      print("BackgroundService: User authenticated as $professorId");
+
+      // Check for active lesson in classroom A
+      const classroomId = "classroom_a";
+      _activeLesson =
+      await scheduleRepo.getCurrentLesson(professorId, classroomId);
+
+      print("BackgroundService: Active lesson check result: ${_activeLesson
+          ?.subjectName ?? 'None'}");
+
+      if (_activeLesson != null) {
+        // LESSON IS ACTIVE
+        _currentStatus = "Lesson found: ${_activeLesson!.subjectName}.";
+        print("BackgroundService: Active lesson found: ${_activeLesson!
+            .subjectName}");
+
+        if (_connectedDevice == null && !_isConnecting) {
+          _currentStatus = "Scanning for Classroom A...";
+          updateNotification('Active Lesson', _currentStatus);
+          print("BackgroundService: Starting scan for classroom device...");
+
+          _scanSubscription ??= bleRepo.startScanning().listen(
                   (device) async {
-                if (_isConnecting) return;
+                if (_isConnecting || _connectedDevice != null) {
+                  print(
+                      "BackgroundService: Already connecting or connected, ignoring device");
+                  return;
+                }
+
                 _isConnecting = true;
+                print("BackgroundService: Found device: ${device.name} (${device
+                    .uuid})");
+
                 await _scanSubscription?.cancel();
                 _scanSubscription = null;
 
-                _currentStatus = "Connecting to ${device.name}...";
-                updateNotification('Classroom Found', _currentStatus);
+              _currentStatus = "Connecting to ${device.name}...";
+              updateNotification('Classroom Found', _currentStatus);
 
-                try {
-                  // --- FIX: Use listenToConnection helper ---
-                  _connectionSubscription = bleRepo.listenToConnection(device, (state) {
-                    if (state == BluetoothConnectionState.disconnected) {
-                      _connectedDevice = null;
-                      _connectionSubscription?.cancel();
-                      _connectionSubscription = null;
-                      updateNotification('Device Disconnected', 'Will re-scan if lesson is active.');
-                    }
-                  });
+              try {
+                // Set up connection state listener
+                _connectionSubscription =
+                    bleRepo.listenToConnection(device, (state) {
+                      print(
+                          "BackgroundService: Connection state changed: $state");
+                      if (state == BluetoothConnectionState.disconnected) {
+                        print("BackgroundService: Device disconnected");
+                        _connectedDevice = null;
+                        _connectionSubscription?.cancel();
+                        _connectionSubscription = null;
+                        updateNotification('Device Disconnected',
+                            'Will re-scan if lesson is active.');
+                      }
+                    });
 
-                  // --- FIX: Pass the required callback function to connect ---
-                  await bleRepo.connect(device, (disconnectedDevice, state) {
-                    // This is the onStateChange callback required by your repository
-                    if (state == BluetoothConnectionState.disconnected) {
-                      _connectedDevice = null;
-                      _connectionSubscription?.cancel();
-                      _connectionSubscription = null;
-                      updateNotification('Device Disconnected', 'Will re-scan if lesson is active.');
-                    }
-                  });
-
-                  _connectedDevice = device;
-
-                  // --- G. THIS IS YOUR AUTOMATION ---
-                  // --- FIX: Cast to ESP32Classroom and use 'duration' getter ---
-                  if (_connectedDevice is ESP32Classroom) {
-                    _currentStatus = "Connected! Setting up classroom...";
-                    updateNotification('Connected', _currentStatus);
-                    await (_connectedDevice as ESP32Classroom).setupClassroom(_activeLesson!.durationMinutes);
-                    _currentStatus = "Classroom is ready.";
-                    updateNotification('Setup Complete', _currentStatus);
-                  } else {
-                    _currentStatus = "Connected to unknown device type.";
-                    updateNotification('Error', _currentStatus);
+                // Connect to device
+                await bleRepo.connect(device, (disconnectedDevice, state) {
+                  if (state == BluetoothConnectionState.disconnected) {
+                    print(
+                        "BackgroundService: Device disconnected via callback");
+                    _connectedDevice = null;
+                    _connectionSubscription?.cancel();
+                    _connectionSubscription = null;
+                    updateNotification('Device Disconnected',
+                        'Will re-scan if lesson is active.');
                   }
-                  // --- END OF FIX ---
+                });
 
-                } catch (e) {
-                  _currentStatus = "Connection failed. Retrying...";
-                  updateNotification('Connection Error', _currentStatus);
-                  _connectedDevice = null;
-                  _connectionSubscription?.cancel(); // Clean up listener on failure
-                  _connectionSubscription = null;
-                } finally {
-                  _isConnecting = false;
+                _connectedDevice = device;
+                print("BackgroundService: Successfully connected to ${device
+                    .name}");
+
+                // Set up classroom if it's an ESP32 classroom device
+                if (_connectedDevice is ESP32Classroom) {
+                  _currentStatus = "Connected! Setting up classroom...";
+                  updateNotification('Connected', _currentStatus);
+
+                  final classroom = _connectedDevice as ESP32Classroom;
+                  await classroom.setupClassroom(
+                      _activeLesson!.durationMinutes);
+
+                  _currentStatus =
+                  "Classroom is ready for ${_activeLesson!.subjectName}";
+                  updateNotification('Setup Complete', _currentStatus);
+                  print("BackgroundService: Classroom setup completed");
+                } else {
+                  _currentStatus = "Connected to unknown device type.";
+                  updateNotification('Warning', _currentStatus);
+                  print(
+                      "BackgroundService: WARNING - Connected device is not ESP32Classroom type");
                 }
-              },
+              } catch (e) {
+                print("BackgroundService: Connection failed - $e");
+                _currentStatus = "Connection failed. Retrying in next cycle...";
+                updateNotification('Connection Error', _currentStatus);
+                _connectedDevice = null;
+                _connectionSubscription?.cancel();
+                _connectionSubscription = null;
+              } finally {
+                _isConnecting = false;
+              }
+            },
               onError: (e) {
-                print("Scan error: $e");
+                print("BackgroundService: Scan error - $e");
                 _scanSubscription?.cancel();
                 _scanSubscription = null;
                 _isConnecting = false;
+                updateNotification('Scan Error', 'Will retry in next cycle...');
               },
               onDone: () {
+                print("BackgroundService: Scan completed");
                 _scanSubscription = null;
+                _isConnecting = false;
               }
           );
-      } else if (_connectedDevice != null) {
-        _currentStatus = "Classroom is ready.";
-        updateNotification('Setup Complete', _currentStatus);
-      }
-    } else {
-      // --- NO ACTIVE LESSON ---
-      _currentStatus = "No active lesson. Scanning paused.";
-      updateNotification('Automation Paused', _currentStatus);
-
-      await _scanSubscription?.cancel();
-      _scanSubscription = null;
-
-      if (_connectedDevice != null) {
-        _currentStatus = "Lesson ended. Shutting down classroom.";
-        updateNotification('Lesson Ended', _currentStatus);
-        try {
-          // --- FIX: Cast to ESP32Classroom ---
-          if (_connectedDevice is ESP32Classroom) {
-            await (_connectedDevice as ESP32Classroom).shutdownClassroom();
+        } else if (_connectedDevice != null) {
+          _currentStatus =
+          "Classroom is ready for ${_activeLesson!.subjectName}";
+          // Only update notification every few cycles to avoid spam
+          updateCounter++;
+          if (updateCounter % 10 ==
+              0) { // Update every 5 minutes (10 * 30 seconds)
+            updateNotification('Classroom Ready', _currentStatus);
           }
-        } catch (e) {
-          print("Error shutting down: $e");
         }
-        await _connectedDevice!.disconnect();
-        _connectedDevice = null;
-        _connectionSubscription?.cancel(); // Clean up listener
-        _connectionSubscription = null;
+      } else {
+        // NO ACTIVE LESSON
+        print("BackgroundService: No active lesson found");
+        _currentStatus = "No active lesson. Scanning paused.";
+        updateNotification('Automation Paused', 'No active lesson scheduled.');
+
+        // Clean up scanning
+        await _scanSubscription?.cancel();
+        _scanSubscription = null;
+
+        // Shutdown classroom if connected
+        if (_connectedDevice != null) {
+          _currentStatus = "Lesson ended. Shutting down classroom.";
+          updateNotification('Lesson Ended', _currentStatus);
+          print("BackgroundService: Shutting down classroom...");
+
+          try {
+            if (_connectedDevice is ESP32Classroom) {
+              await (_connectedDevice as ESP32Classroom).shutdownClassroom();
+              print("BackgroundService: Classroom shutdown completed");
+            }
+          } catch (e) {
+            print("BackgroundService: Error shutting down classroom - $e");
+          }
+
+          await _connectedDevice!.disconnect();
+          _connectedDevice = null;
+          await _connectionSubscription?.cancel();
+          _connectionSubscription = null;
+        }
       }
+    } catch (e) {
+      print("BackgroundService: Error in automation cycle - $e");
+      updateNotification('Service Error', 'Error: $e');
     }
   });
 }

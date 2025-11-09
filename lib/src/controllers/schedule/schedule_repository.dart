@@ -2,122 +2,117 @@ import 'package:ble/src/models/lesson_schedule.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class ScheduleRepository {
-  final _dbRef = FirebaseDatabase.instance.ref();
+  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
 
-  // Get current lesson for a professor in a specific classroom
-  Future<LessonSchedule?> getCurrentLesson(String professorId,
-      String classroomId) async {
+  // Get current active lesson for a professor in a specific classroom
+  Future<LessonSchedule?> getCurrentLesson(
+      String professorId, String classroomId) async {
     try {
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-      final todayEnd = todayStart.add(Duration(days: 1));
+      print(
+          "ScheduleRepository: Checking lessons for professor: $professorId, classroom: $classroomId");
 
-      final snapshot = await _dbRef
-          .child('lessons')
-          .orderByChild('professorId')
-          .equalTo(professorId)
-          .get();
+      // Query all lessons from Firebase
+      final DataSnapshot snapshot = await _dbRef.child('lessons').get();
 
-      if (snapshot.exists) {
-        final data = Map<String, dynamic>.from(
-            snapshot.value as Map<dynamic, dynamic>);
+      if (!snapshot.exists) {
+        print("ScheduleRepository: No lessons found in database");
+        return null;
+      }
 
-        for (var entry in data.entries) {
-          final lessonData = Map<String, dynamic>.from(
-              entry.value as Map<dynamic, dynamic>);
-          final lesson = LessonSchedule.fromMap(entry.key, lessonData);
+      final Map<dynamic, dynamic> lessonsData =
+          snapshot.value as Map<dynamic, dynamic>;
+      final DateTime now = DateTime.now();
+      print("ScheduleRepository: Current time: $now");
+      print(
+          "ScheduleRepository: Found ${lessonsData.length} lessons in database");
 
-          // Check if lesson is for this classroom and is currently active or starts soon
-          if (lesson.classroomId == classroomId &&
-              (lesson.isCurrentlyActive || lesson.startsWithin15Minutes)) {
+      // Check each lesson
+      for (var entry in lessonsData.entries) {
+        final String lessonId = entry.key;
+        final Map<String, dynamic> lessonData =
+            Map<String, dynamic>.from(entry.value);
+
+        print(
+            "ScheduleRepository: Checking lesson $lessonId: ${lessonData['subjectName']}");
+        print(
+            "ScheduleRepository: Professor: ${lessonData['professorId']}, Classroom: ${lessonData['classroomId']}");
+
+        // Check if this lesson matches professor and classroom
+        if (lessonData['professorId'] == professorId &&
+            lessonData['classroomId'] == classroomId &&
+            lessonData['isActive'] == true) {
+          final DateTime startTime = DateTime.parse(lessonData['startTime']);
+          final DateTime endTime = DateTime.parse(lessonData['endTime']);
+
+          print("ScheduleRepository: Lesson time: $startTime to $endTime");
+
+          // Check if lesson is currently active (with 10 minute buffer after end)
+          final DateTime endWithBuffer = endTime.add(Duration(minutes: 10));
+
+          if (now.isAfter(startTime) && now.isBefore(endWithBuffer)) {
+            print(
+                "ScheduleRepository: Found active lesson: ${lessonData['subjectName']}");
+
+            final lesson = LessonSchedule.fromMap(lessonId, lessonData);
             return lesson;
+          } else {
+            print(
+                "ScheduleRepository: Lesson not active now. Current: $now, Start: $startTime, End: $endTime");
           }
+        } else {
+          print("ScheduleRepository: Lesson doesn't match criteria");
         }
       }
+
+      print(
+          "ScheduleRepository: No active lesson found for professor $professorId in classroom $classroomId");
       return null;
     } catch (e) {
-      print('Error getting current lesson: $e');
+      print("ScheduleRepository: Error getting current lesson: $e");
       return null;
     }
   }
 
-  // Get all lessons for a professor today
-  Future<List<LessonSchedule>> getTodayLessons(String professorId) async {
+  // Get all lessons for a professor
+  Future<List<LessonSchedule>> getLessonsForProfessor(
+      String professorId) async {
     try {
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-      final todayEnd = todayStart.add(Duration(days: 1));
-
-      final snapshot = await _dbRef
+      final DataSnapshot snapshot = await _dbRef
           .child('lessons')
           .orderByChild('professorId')
           .equalTo(professorId)
           .get();
 
+      if (!snapshot.exists) return [];
+
+      final Map<dynamic, dynamic> lessonsData =
+          snapshot.value as Map<dynamic, dynamic>;
       List<LessonSchedule> lessons = [];
 
-      if (snapshot.exists) {
-        final data = Map<String, dynamic>.from(
-            snapshot.value as Map<dynamic, dynamic>);
+      lessonsData.forEach((key, value) {
+        final lessonData = Map<String, dynamic>.from(value);
+        lessons.add(LessonSchedule.fromMap(key, lessonData));
+      });
 
-        for (var entry in data.entries) {
-          final lessonData = Map<String, dynamic>.from(
-              entry.value as Map<dynamic, dynamic>);
-          final lesson = LessonSchedule.fromMap(entry.key, lessonData);
-
-          // Filter lessons for today
-          if (lesson.startTime.isAfter(todayStart) &&
-              lesson.startTime.isBefore(todayEnd)) {
-            lessons.add(lesson);
-          }
-        }
-      }
-
-      // Sort by start time
-      lessons.sort((a, b) => a.startTime.compareTo(b.startTime));
       return lessons;
     } catch (e) {
-      print('Error getting today lessons: $e');
+      print("Error getting lessons for professor: $e");
       return [];
     }
   }
 
-  // Get next lesson for a professor
-  Future<LessonSchedule?> getNextLesson(String professorId) async {
-    try {
-      final now = DateTime.now();
-      final snapshot = await _dbRef
-          .child('lessons')
-          .orderByChild('professorId')
-          .equalTo(professorId)
-          .get();
+  // Get lessons for today
+  Future<List<LessonSchedule>> getTodaysLessons(String professorId) async {
+    final allLessons = await getLessonsForProfessor(professorId);
+    final DateTime now = DateTime.now();
+    final DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    final DateTime endOfDay = startOfDay.add(Duration(days: 1));
 
-      LessonSchedule? nextLesson;
-
-      if (snapshot.exists) {
-        final data = Map<String, dynamic>.from(
-            snapshot.value as Map<dynamic, dynamic>);
-
-        for (var entry in data.entries) {
-          final lessonData = Map<String, dynamic>.from(
-              entry.value as Map<dynamic, dynamic>);
-          final lesson = LessonSchedule.fromMap(entry.key, lessonData);
-
-          // Find next lesson (starts after now)
-          if (lesson.startTime.isAfter(now) && lesson.isActive) {
-            if (nextLesson == null ||
-                lesson.startTime.isBefore(nextLesson.startTime)) {
-              nextLesson = lesson;
-            }
-          }
-        }
-      }
-
-      return nextLesson;
-    } catch (e) {
-      print('Error getting next lesson: $e');
-      return null;
-    }
+    return allLessons.where((lesson) {
+      return lesson.startTime.isAfter(startOfDay) &&
+          lesson.startTime.isBefore(endOfDay) &&
+          lesson.isActive;
+    }).toList();
   }
 
   // Create a new lesson
@@ -163,18 +158,29 @@ class ScheduleRepository {
   }
 
   // Log classroom access
-  Future<void> logClassroomAccess(String professorId, String classroomId,
-      String action) async {
+  Future<void> logClassroomAccess(
+    String professorId,
+    String classroomId,
+    String action, {
+    String? lessonId,
+    int? duration,
+  }) async {
     try {
       final logRef = _dbRef.child('access_logs').push();
+
       await logRef.set({
         'professorId': professorId,
         'classroomId': classroomId,
-        'action': action, // 'unlock', 'lock', 'setup', 'shutdown'
+        'action': action,
         'timestamp': DateTime.now().toIso8601String(),
+        'lessonId': lessonId,
+        'duration': duration,
       });
+
+      print(
+          "Classroom access logged: $action for $professorId in $classroomId");
     } catch (e) {
-      print('Error logging classroom access: $e');
+      print("Error logging classroom access: $e");
     }
   }
 }
