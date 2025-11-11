@@ -13,6 +13,7 @@ import 'package:ble/src/ui/widgets/custom_device_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:permission_handler/permission_handler.dart'; // Added import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -30,9 +31,34 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // 1. Force permission request every time the screen loads
+    _enforcePermissions();
+
     //BlocProvider.of<BleBloc>(context).add(CheckBleAvailability());
     _loadProfessorProfile();
     _loadClassroomMapping();
+  }
+
+  // Added function to enforce permissions
+  Future<void> _enforcePermissions() async {
+    print("HomeScreen: Enforcing permissions...");
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.notification,
+    ].request();
+
+    // Log the result for debugging
+    statuses.forEach((permission, status) {
+      print("Permission $permission: $status");
+    });
+
+    if (statuses[Permission.bluetoothScan]?.isPermanentlyDenied ?? false) {
+      // Optional: Show dialog if permanently denied
+      print("Bluetooth scan permission is permanently denied");
+      openAppSettings();
+    }
   }
 
   Future<void> _loadProfessorProfile() async {
@@ -53,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-  //  BlocProvider.of<BleBloc>(context).add(StopDiscovering());
+    //  BlocProvider.of<BleBloc>(context).add(StopDiscovering());
     super.dispose();
   }
 
@@ -238,84 +264,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  /*void _handleState(BleState state) {
-    print(state.status);
-    switch (state.status) {
-      case BleStatus.checkingAvailability:
-        EasyLoading.show(
-            status: "Checking Bluetooth availability...",
-            dismissOnTap: false,
-            maskType: EasyLoadingMaskType.black);
-        break;
-      case BleStatus.notAvailable:
-        EasyLoading.dismiss();
-        // Show more helpful error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message ?? 'Bluetooth not available'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
-            action: SnackBarAction(
-              label: 'RETRY',
-              textColor: Colors.white,
-              onPressed: () =>
-                  BlocProvider.of<BleBloc>(context).add(CheckBleAvailability()),
-            ),
-          ),
-        );
-        break;
-      case BleStatus.available:
-        EasyLoading.dismiss();
-        //BlocProvider.of<BleBloc>(context).add(DiscoverDevices());
-        break;
-      case BleStatus.discovering:
-        EasyLoading.show(
-            status: "Searching for ESP32 devices...",
-            dismissOnTap: false,
-            maskType: EasyLoadingMaskType.black);
-        break;
-      case BleStatus.connecting:
-        EasyLoading.show(
-          status: state.message ?? "Connecting...",
-          dismissOnTap: false,
-          maskType: EasyLoadingMaskType.black,
-        );
-        break;
-      case BleStatus.connected:
-        EasyLoading.dismiss();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Successfully connected to ${state.connectedDevices.length} device(s)!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        break;
-      case BleStatus.notConnected:
-        EasyLoading.dismiss();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message ?? "Connection failed"),
-            backgroundColor: Colors.red,
-            action: SnackBarAction(
-              label: 'RETRY',
-              textColor: Colors.white,
-              onPressed: () =>
-                  BlocProvider.of<BleBloc>(context).add(DiscoverDevices()),
-            ),
-          ),
-        );
-        break;
-      case BleStatus.disconnected:
-        EasyLoading.dismiss();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message ?? "Device disconnected"),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        break;
-    }
-  }*/
 }
