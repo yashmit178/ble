@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // Notification Plugin as global variable
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -71,33 +72,6 @@ void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "dummy",
-      appId: "dummy",
-      messagingSenderId: "dummy",
-      projectId: "dummy",
-      databaseURL:
-      "https://classroom-6206e-default-rtdb.europe-west1.firebasedatabase.app/",
-    ),
-  );
-
-  // Initialize Repositories
-  final authRepo = AuthRepository();
-  final scheduleRepo = ScheduleRepository();
-  final bleRepo = BleRepository(LocalServices());
-
-  // Service State Variables
-  LessonSchedule? _activeLesson;
-  AbstractDevice? _connectedDevice;
-  StreamSubscription<AbstractDevice>? _scanSubscription;
-  StreamSubscription<BluetoothConnectionState>? _connectionSubscription;
-  bool _isConnecting = false;
-  String _currentStatus = "Service initialized. Checking authentication...";
-  int updateCounter = 0;
-
-  // Service Notification Helper
   void updateNotification(String title, String body) {
     print("BackgroundService: $title - $body");
     flutterLocalNotificationsPlugin.show(
@@ -117,17 +91,126 @@ void onStart(ServiceInstance service) async {
     service.invoke('update', {'status': title, 'body': body});
   }
 
+  // Skip permission checks in background service - they should be granted from main app
+  print(
+      "BackgroundService: Starting without permission checks (assuming already granted)");
+  updateNotification('Classroom Automation', 'Service is starting...');
+
+  // Initialize Firebase with better error handling
+  try {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "dummy",
+        appId: "dummy",
+        messagingSenderId: "dummy",
+        projectId: "dummy",
+        databaseURL:
+            "https://classroom-6206e-default-rtdb.europe-west1.firebasedatabase.app/",
+      ),
+    );
+    print("BackgroundService: Firebase initialized successfully");
+  } catch (e) {
+    print("BackgroundService: Firebase initialization failed: $e");
+    updateNotification('Firebase Error', 'Unable to connect to database');
+    // Continue anyway - we can still try BLE operations
+  }
+
+  // Initialize Repositories with better error handling
+  final authRepo = AuthRepository();
+  final scheduleRepo = ScheduleRepository();
+  final bleRepo = BleRepository(LocalServices());
+
+  // Service State Variables
+  LessonSchedule? _activeLesson;
+  AbstractDevice? _connectedDevice;
+  StreamSubscription<AbstractDevice>? _scanSubscription;
+  StreamSubscription<BluetoothConnectionState>? _connectionSubscription;
+  bool _isConnecting = false;
+  String _currentStatus = "Service initialized. Checking authentication...";
+  int updateCounter = 0;
+
   updateNotification('Classroom Automation', 'Service is running.');
 
   // Core Automation Logic
   Timer.periodic(const Duration(seconds: 30), (timer) async {
     try {
       print("BackgroundService: Running automation cycle...");
+      updateNotification('Service Active', 'Checking for active lessons...');
 
-      // Check if user is authenticated
-      final hasToken = await authRepo.hasToken();
-      final professorId = await authRepo.getProfessorId();
-      final username = await authRepo.getUsername();
+      // === DEBUG: BLE SCANNING TEST ===
+      if (updateCounter == 0) {
+        // Only run once
+        print("BackgroundService: === RUNNING BLE DEBUG TEST ===");
+        try {
+          final adapterState = await FlutterBluePlus.adapterState.first;
+          print("BackgroundService: BLE Adapter State: $adapterState");
+
+          if (adapterState == BluetoothAdapterState.on) {
+            print("BackgroundService: Starting debug scan for ALL devices...");
+            await FlutterBluePlus.stopScan();
+
+            // Try different scanning approach for background service
+            print(
+                "BackgroundService: Attempting scan without timeout first...");
+            FlutterBluePlus.startScan();
+
+            // Use stream subscription to get results
+            bool foundDevices = false;
+            StreamSubscription? debugScanSub;
+
+            debugScanSub = FlutterBluePlus.scanResults.listen((results) {
+              if (results.isNotEmpty && !foundDevices) {
+                foundDevices = true;
+                print(
+                    "BackgroundService: Debug scan found ${results.length} devices");
+                for (var r in results) {
+                  print(
+                      "BackgroundService: Found: ${r.device.platformName} (${r.device.remoteId.str}) RSSI: ${r.rssi}");
+                }
+              }
+            });
+
+            // Wait for scan results
+            await Future.delayed(Duration(seconds: 8));
+
+            await debugScanSub?.cancel();
+            await FlutterBluePlus.stopScan();
+
+            print(
+                "BackgroundService: Debug scan complete. Found devices: $foundDevices");
+
+            // If no devices found, Android might be blocking background BLE scanning
+            if (!foundDevices) {
+              updateNotification('BLE Debug',
+                  'No devices found - Android may be blocking background BLE');
+            } else {
+              updateNotification(
+                  'BLE Debug', 'BLE scanning works - found devices');
+            }
+          }
+        } catch (e) {
+          print("BackgroundService: Debug scan error: $e");
+          updateNotification('BLE Error', 'Scan failed: $e');
+        }
+        print("BackgroundService: === BLE DEBUG TEST COMPLETE ===");
+      }
+      // === END DEBUG TEST ===
+
+      // Check if user is authenticated - use simpler approach for background service
+      bool hasToken = false;
+      String? professorId;
+      String? username;
+
+      try {
+        hasToken = await authRepo.hasToken();
+        professorId = await authRepo.getProfessorId();
+        username = await authRepo.getUsername();
+      } catch (e) {
+        print("BackgroundService: Auth check failed: $e");
+        _currentStatus = "Authentication check failed. Service paused.";
+        updateNotification('Auth Error', 'Cannot verify login status.');
+        return;
+      }
 
       print(
           "BackgroundService: Auth status - hasToken: $hasToken, professorId: $professorId, username: $username");
@@ -150,39 +233,44 @@ void onStart(ServiceInstance service) async {
 
       // Check for active lesson in classroom A
       const classroomId = "classroom_a";
-      _activeLesson =
-      await scheduleRepo.getCurrentLesson(professorId, classroomId);
+      try {
+        _activeLesson =
+            await scheduleRepo.getCurrentLesson(professorId, classroomId);
+      } catch (e) {
+        print("BackgroundService: Error checking lessons: $e");
+        updateNotification('Database Error', 'Cannot check lesson schedule');
+        return;
+      }
 
-      print("BackgroundService: Active lesson check result: ${_activeLesson
-          ?.subjectName ?? 'None'}");
+      print(
+          "BackgroundService: Active lesson check result: ${_activeLesson?.subjectName ?? 'None'}");
 
       if (_activeLesson != null) {
         // LESSON IS ACTIVE
         _currentStatus = "Lesson found: ${_activeLesson!.subjectName}.";
-        print("BackgroundService: Active lesson found: ${_activeLesson!
-            .subjectName}");
+        print(
+            "BackgroundService: Active lesson found: ${_activeLesson!.subjectName}");
 
         if (_connectedDevice == null && !_isConnecting) {
           _currentStatus = "Scanning for Classroom A...";
           updateNotification('Active Lesson', _currentStatus);
           print("BackgroundService: Starting scan for classroom device...");
 
-          _scanSubscription ??= bleRepo.startScanning().listen(
-                  (device) async {
-                if (_isConnecting || _connectedDevice != null) {
-                  print(
-                      "BackgroundService: Already connecting or connected, ignoring device");
-                  return;
-                }
+          _scanSubscription ??= bleRepo.startScanning().listen((device) async {
+            if (_isConnecting || _connectedDevice != null) {
+              print(
+                  "BackgroundService: Already connecting or connected, ignoring device");
+              return;
+            }
 
-                _isConnecting = true;
-                print("BackgroundService: Found device: ${device.name} (${device
-                    .uuid})");
+            _isConnecting = true;
+            print(
+                "BackgroundService: Found device: ${device.name} (${device.uuid})");
 
-                await _scanSubscription?.cancel();
-                _scanSubscription = null;
+            await _scanSubscription?.cancel();
+            _scanSubscription = null;
 
-              _currentStatus = "Connecting to ${device.name}...";
+            _currentStatus = "Connecting to ${device.name}...";
               updateNotification('Classroom Found', _currentStatus);
 
               try {

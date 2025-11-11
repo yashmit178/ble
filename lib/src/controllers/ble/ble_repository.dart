@@ -38,10 +38,12 @@ class BleRepository {
     print(
         "Starting scan. Will filter for known MACs: ${knownDevices.data}"); // Updated log
     print("Target Service UUID (for reference): ${serviceGuid.toString()}");
+    print(
+        "Scanning WITHOUT service filter for better Android compatibility...");
 
     try {
       FlutterBluePlus.startScan(
-        //withServices: [serviceGuid],
+        // Remove service UUID filter for better Android compatibility
         timeout: const Duration(seconds: 20), // Increased timeout
       );
 
@@ -194,32 +196,69 @@ class BleRepository {
 
     controller = StreamController<AbstractDevice>(
       onListen: () async {
+        // Check Bluetooth adapter state first
+        final adapterState = await FlutterBluePlus.adapterState.first;
+        print("Background Service: Bluetooth adapter state: $adapterState");
+
+        if (adapterState != BluetoothAdapterState.on) {
+          print("Background Service: Bluetooth is not enabled");
+          controller.addError('Bluetooth is not enabled');
+          controller.close();
+          return;
+        }
+
         // --- FIX: Use '_serviceRepository' and 'getKnownDeviceUuid' ---
         final knownDevices = await _serviceRepository.getKnownDeviceUuid();
         if (!knownDevices.status) {
+          print("Background Service: Could not load known devices");
           controller.addError('Could not load known devices');
           controller.close();
           return;
         }
 
+        print("Background Service: Known device MACs: ${knownDevices.data}");
+        print(
+            "Background Service: Starting scan WITHOUT service filter for better compatibility...");
+
+        // CRITICAL FIX: Remove service UUID filter for better Android compatibility
         FlutterBluePlus.startScan(
-          timeout: const Duration(seconds: 20),
+          // Remove withServices filter - scan for all devices then filter by MAC
+          timeout: const Duration(
+              seconds: 30), // Increased timeout for background service
         );
 
         scanSub = FlutterBluePlus.scanResults.listen((results) {
+          print(
+              "Background Service: Scan results received: ${results.length} devices");
+
           for (ScanResult r in results) {
+            print(
+                "Background Service: Found device: ${r.device.platformName} (${r.device.remoteId.str}) RSSI: ${r.rssi}");
+
             if (knownDevices.data.contains(r.device.remoteId.str)) {
-              print('>>> MATCH FOUND: ${r.device.remoteId.str}. Yielding device.');
+              print(
+                  'Background Service: >>> MATCH FOUND: ${r.device.remoteId.str}. Yielding device.');
               FlutterBluePlus.stopScan();
               controller.add(_createAbstractDevice(r.device, DeviceType.esp32Classroom));
               controller.close(); // We are done
               scanSub?.cancel();
               return;
+            } else {
+              print(
+                  "Background Service: Device ${r.device.remoteId.str} not in known devices list");
             }
           }
+        }, onError: (error) {
+          print("Background Service: Scan error: $error");
+          controller.addError(error);
+        }, onDone: () {
+          print(
+              "Background Service: Scan completed without finding matching device");
+          controller.close();
         });
       },
       onCancel: () {
+        print("Background Service: Scan cancelled");
         FlutterBluePlus.stopScan();
         scanSub?.cancel();
       },

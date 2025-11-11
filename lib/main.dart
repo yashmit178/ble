@@ -15,13 +15,35 @@ import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await [
+
+  // Request permissions with better error handling
+  print("Main: Requesting permissions...");
+  Map<Permission, PermissionStatus> statuses = await [
     Permission.location,
     Permission.bluetoothScan,
     Permission.bluetoothConnect,
-    Permission.notification, // <-- NEW
-    Permission.ignoreBatteryOptimizations, // <-- NEW
+    Permission.notification,
+    Permission.ignoreBatteryOptimizations,
   ].request();
+
+  print("Main: Permission statuses: $statuses");
+
+  // Check if critical permissions are granted
+  bool locationGranted = statuses[Permission.location]?.isGranted ?? false;
+  bool bluetoothGranted =
+      (statuses[Permission.bluetoothScan]?.isGranted ?? false) &&
+          (statuses[Permission.bluetoothConnect]?.isGranted ?? false);
+  bool notificationGranted =
+      statuses[Permission.notification]?.isGranted ?? false;
+
+  if (!locationGranted || !bluetoothGranted) {
+    print(
+        "Main: Critical permissions not granted. App may not work correctly.");
+    // Show warning but continue - user can grant later
+  }
+
+  // Initialize Firebase
+  print("Main: Initializing Firebase...");
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "dummy",
@@ -33,7 +55,18 @@ void main() async {
           "https://classroom-6206e-default-rtdb.europe-west1.firebasedatabase.app/",
     ),
   );
-  await initializeService();
+  print("Main: Firebase initialized successfully");
+
+  // Initialize background service
+  print("Main: Initializing background service...");
+  try {
+    await initializeService();
+    print("Main: Background service initialized successfully");
+  } catch (e) {
+    print("Main: Background service initialization failed: $e");
+    // Continue anyway - app can work without background service
+  }
+
   runApp(
     MultiRepositoryProvider(
       providers: [
