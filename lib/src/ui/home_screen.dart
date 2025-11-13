@@ -1,10 +1,10 @@
+import 'dart:io'; // Required for Platform check
 import 'package:ble/src/controllers/auth/auth_bloc.dart';
 import 'package:ble/src/controllers/auth/auth_event.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:ble/src/controllers/auth/auth_repository.dart';
 import 'package:ble/src/controllers/ble/ble_bloc.dart';
 import 'package:ble/src/controllers/ble/ble_event.dart';
-import 'package:ble/src/controllers/ble/ble_state.dart';
 import 'package:ble/src/controllers/service/local_services.dart';
 import 'package:ble/src/models/esp32_classroom/esp32_classroom.dart';
 import 'package:ble/src/models/smart_switch/smart_switch.dart';
@@ -12,8 +12,8 @@ import 'package:ble/src/ui/widgets/classroom_device_item.dart';
 import 'package:ble/src/ui/widgets/custom_device_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:permission_handler/permission_handler.dart'; // Added import
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart'; // Required for turnOn()
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -31,33 +31,49 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // 1. Force permission request every time the screen loads
-    _enforcePermissions();
 
-    //BlocProvider.of<BleBloc>(context).add(CheckBleAvailability());
+    // --- RESTORED LOGIC START ---
+    // This runs every time the app is opened (Home Screen initialized)
+    _enableBluetoothWithSystemDialog();
+    // --- RESTORED LOGIC END ---
+
     _loadProfessorProfile();
     _loadClassroomMapping();
   }
 
-  // Added function to enforce permissions
-  Future<void> _enforcePermissions() async {
-    print("HomeScreen: Enforcing permissions...");
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.location,
+  /// This function implements the exact logic from your old BleBloc
+  Future<void> _enableBluetoothWithSystemDialog() async {
+    // 1. We must request CONNECT permission first, otherwise turnOn() fails silently on Android 12+
+    await [
       Permission.bluetoothScan,
       Permission.bluetoothConnect,
+      Permission.location,
       Permission.notification,
     ].request();
 
-    // Log the result for debugging
-    statuses.forEach((permission, status) {
-      print("Permission $permission: $status");
-    });
+    // 2. Check if Bluetooth Adapter is ON
+    if (Platform.isAndroid) {
+      // Get the current state
+      final adapterState = await FlutterBluePlus.adapterState.first;
 
-    if (statuses[Permission.bluetoothScan]?.isPermanentlyDenied ?? false) {
-      // Optional: Show dialog if permanently denied
-      print("Bluetooth scan permission is permanently denied");
-      openAppSettings();
+      if (adapterState != BluetoothAdapterState.on) {
+        print("Bluetooth is OFF. Triggering system dialog...");
+
+        try {
+          // --- THIS IS THE LINE THAT TRIGGERS "ble wants to turn on bluetooth" ---
+          await FlutterBluePlus.turnOn();
+        } catch (e) {
+          print("Error requesting to turn on Bluetooth: $e");
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Could not enable Bluetooth: $e"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
     }
   }
 
@@ -79,7 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    //  BlocProvider.of<BleBloc>(context).add(StopDiscovering());
     super.dispose();
   }
 
@@ -112,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      // Note: We are listening to the Background Service for UI updates
       body: StreamBuilder<Map<String, dynamic>?>(
         stream: FlutterBackgroundService().on('update'),
         builder: (context, snapshot) {
@@ -129,19 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _createView(String status, String body) {
-    // Here you can check the status string to show different UI
-    // e.g., if (status == "Connected") show the device item.
-    // For now, this is a simple status display:
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (status == "Scanning for Classroom A...")
+            if (status.contains("Scanning") || status.contains("Initializing"))
               const CircularProgressIndicator(),
-            if (status != "Scanning for Classroom A...")
+            if (!status.contains("Scanning") && !status.contains("Initializing"))
               const Icon(Icons.check_circle, color: Colors.green, size: 60),
             const SizedBox(height: 20),
             Text(
@@ -194,39 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProfessorInfoCard() {
-    return Card(
-      margin: EdgeInsets.all(16.0),
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.person, color: Colors.blue),
-                SizedBox(width: 8),
-                Text(
-                  'Professor Information',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text('Name: ${_professorProfile!['professorName'] ?? 'N/A'}'),
-            Text('Username: ${_professorProfile!['username']}'),
-            Text('ID: ${_professorProfile!['professorId'] ?? 'N/A'}'),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showLessonSchedule() {
-    // TODO: Implement lesson schedule view
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Lesson schedule feature coming soon!'),
@@ -236,6 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showDeviceInfo() {
+    // Note: BLoC state might be empty if logic is in BackgroundService,
+    // but keeping this purely for compatibility with your existing widgets.
     final state = BlocProvider.of<BleBloc>(context).state;
     showDialog(
       context: context,
